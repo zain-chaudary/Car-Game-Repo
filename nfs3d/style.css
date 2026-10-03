@@ -34,8 +34,7 @@ button { font-family: inherit; }
 }
 .bg.active { opacity: 1; }
 #bg-home { background-image: url('assets/bg_home.jpg'); }
-#bg-garage { background-image: url('assets/bg_garage.jpg'); }
-#bg-career { background-image: url('assets/bg_career.jpg'); }
+/* garage & career backdrops are lazy-set by main.js on first visit */
 
 /* soft readability overlays only — no neon, no grain */
 #fx-vignette {

@@ -16,27 +16,27 @@ const NITRO_UNLOCK_COST = 5000;
 const CARS = [
   {
     id: 'bruiser', name: 'BRUISER V8', klass: 'STREET', price: 0,
-    model: 'assets/models/bruiser.glb', art: 'assets/car_bruiser.png',
+    model: 'assets/models/bruiser.glb', art: 'assets/car_bruiser.jpg',
     factoryFinish: true, nitroLocked: true,
     base: { speed: 185, accel: 7.6, handling: 52, nitro: 40, brakes: 50, aero: 18 },
     desc: 'Steel-blue dockyard bruiser with a cast-iron V8. The league hands these to rookies — make it yours first, then make it fast.',
   },
   {
     id: 'hyperion', name: 'HYPERION GT', klass: 'GT', price: 0,
-    model: 'assets/models/hyperion.glb', art: 'assets/car_hyperion.png',
+    model: 'assets/models/hyperion.glb', art: 'assets/car_hyperion.jpg',
     factoryFinish: true, nitroLocked: true,
     base: { speed: 185, accel: 7.6, handling: 54, nitro: 40, brakes: 52, aero: 22 },
     desc: 'Olive-green grand tourer. Same rookie pace as the Bruiser — the difference is what you do with it.',
   },
   {
     id: 'falcon', name: 'FALCON GT', klass: 'STREET', price: 12000,
-    art: 'assets/car_falcon.png', silhouette: 'coupe', paint: 0xd8352f, nitroLocked: false,
+    art: 'assets/car_falcon.jpg', silhouette: 'coupe', paint: 0xd8352f, nitroLocked: false,
     base: { speed: 262, accel: 6.8, handling: 58, nitro: 45, brakes: 55, aero: 30 },
     desc: 'The street coupe the pros run. Honest power, honest money — tune it and it bites.',
   },
   {
     id: 'vortex', name: 'VORTEX R', klass: 'SUPER', price: 25000,
-    art: 'assets/car_vortex.png', silhouette: 'super', paint: 0x1a6bff, nitroLocked: false,
+    art: 'assets/car_vortex.jpg', silhouette: 'super', paint: 0x1a6bff, nitroLocked: false,
     base: { speed: 318, accel: 5.2, handling: 76, nitro: 70, brakes: 70, aero: 55 },
     desc: 'Track-bred wedge with active aero and a screaming V10. The night league fears this one.',
   },
@@ -124,6 +124,9 @@ const DEFAULT_LOOK = { paint: 'stock', rims: 'stock', glow: 'off', tint: 'none' 
 const RACES = [
   { id: 'sunset', name: 'SUNSET STRIP SPRINT', map: 'DOWNTOWN COAST', dist: '2.4 KM', difficulty: 2, reward: 1500 },
 ];
+
+/* backdrops fetched only when their screen is first opened */
+const BG_URLS = { 'bg-garage': 'assets/bg_garage.jpg', 'bg-career': 'assets/bg_career.jpg' };
 
 const BG_OF = {
   'screen-home': 'bg-home', 'screen-hub': 'bg-home', 'screen-settings': 'bg-home',
@@ -252,7 +255,13 @@ function showScreen(id) {
   document.querySelectorAll('.screen').forEach(s => s.classList.add('hidden'));
   $('#' + id).classList.remove('hidden');
   $('#topbar').classList.toggle('hidden', id === 'screen-home' || id === 'screen-exit');
-  document.querySelectorAll('.bg').forEach(b => b.classList.toggle('active', b.id === (BG_OF[id] || 'bg-home')));
+  const bgId2 = BG_OF[id] || 'bg-home';
+  const bgEl = document.getElementById(bgId2);
+  if (bgEl && BG_URLS[bgId2] && !bgEl.dataset.loaded) {
+    bgEl.style.backgroundImage = "url('" + BG_URLS[bgId2] + "')";
+    bgEl.dataset.loaded = '1';
+  }
+  document.querySelectorAll('.bg').forEach(b => b.classList.toggle('active', b.id === bgId2));
   if (id !== 'screen-garage') { setViewMode(false); if (typeof Viewer !== 'undefined') Viewer.stop(); }
   updateTopbar();
 }

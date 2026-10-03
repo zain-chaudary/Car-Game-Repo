@@ -49,7 +49,7 @@
   </div>
   <div class="home-foot">
     <span>STEP 1 · GARAGE &amp; CAREER</span>
-    <span>v0.2 · PREMIUM BUILD</span>
+    <span>v0.3 · 3D GARAGE BUILD</span>
   </div>
 </section>
 
@@ -63,7 +63,7 @@
     <button class="tile" id="btn-garage">
       <svg class="tile-ico" viewBox="0 0 24 24"><path d="M3 13l2-5h14l2 5v5h-3a2.5 2.5 0 0 1-5 0H11a2.5 2.5 0 0 1-5 0H3v-5zm4-3h10M7 13h.01M17 13h.01" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
       <div class="tile-t">GARAGE</div>
-      <div class="tile-d">CARS · SPECS · UPGRADES</div>
+      <div class="tile-d">3D CARS · PARTS · CUSTOM LOOK</div>
       <span class="tile-arr">›</span>
     </button>
     <button class="tile" id="btn-career">
@@ -81,28 +81,52 @@
 
 <!-- ============ GARAGE ============ -->
 <section id="screen-garage" class="screen garage hidden">
-  <div class="g-left">
-    <div class="car-stage">
-      <img id="car-art" src="assets/car_falcon.png" alt="car">
+  <div class="g-stage" id="g-stage">
+    <canvas id="car-canvas"></canvas>
+    <div id="car-fallback" class="car-fallback hidden"><img id="car-art" src="assets/car_falcon.png" alt="car"></div>
+
+    <div class="stage-hud">
       <div class="car-plate">
         <h3 id="car-name">—</h3>
         <div id="car-class" class="badge">—</div>
+        <div class="car-rating"><span id="car-rating">0</span><small>PERF RATING</small></div>
+      </div>
+      <div class="stage-hints" id="stage-hints">
+        <span><b>◄ ►</b> SWITCH CAR</span><span><b>DRAG</b> ROTATE</span><span><b>SCROLL</b> ZOOM</span><span><b>ESC</b> BACK</span>
       </div>
     </div>
-    <div id="car-list" class="car-tabs"></div>
-    <button class="linkbtn g-back" id="btn-garage-back">‹ BACK TO HUB</button>
+
+    <button class="view3d-btn" id="btn-view3d"><b>1</b> VIEW &amp; ROTATE 3D</button>
+
+    <button class="stage-nav left" id="btn-car-prev" title="previous car">‹</button>
+    <button class="stage-nav right" id="btn-car-next" title="next car">›</button>
   </div>
 
-  <div class="g-right">
-    <p id="car-desc" class="desc"></p>
-    <div id="spec-bars"></div>
-    <h4 class="sub-title">PERFORMANCE UPGRADES</h4>
-    <div id="upgrade-list" class="up-grid"></div>
+  <aside class="g-right" id="g-right">
+    <div class="panel-tabs">
+      <button class="ptab on" id="tab-specs">SPECS</button>
+      <button class="ptab" id="tab-custom">CUSTOMIZATION</button>
+    </div>
+    <div class="panel-body">
+      <div id="panel-specs">
+        <p id="car-desc" class="desc"></p>
+        <div id="spec-bars"></div>
+      </div>
+      <div id="panel-custom" class="hidden">
+        <h4 class="sub-title">PERFORMANCE PARTS</h4>
+        <div id="upgrade-list" class="up-list"></div>
+        <h4 class="sub-title">CUSTOM LOOK</h4>
+        <div id="cosmetic-list" class="cos-list"></div>
+      </div>
+    </div>
     <div class="actions">
       <button class="act primary" id="btn-select">SELECT</button>
       <button class="act" id="btn-buy">BUY</button>
     </div>
-  </div>
+  </aside>
+
+  <div id="car-list" class="car-tabs"></div>
+  <button class="linkbtn g-back" id="btn-garage-back">‹ BACK TO HUB</button>
 </section>
 
 <!-- ============ CAREER ============ -->
@@ -138,6 +162,10 @@
       </div>
     </div>
     <div class="set-row">
+      <span>3D CAR MODELS</span>
+      <span class="set-val" id="glb-status">SAMPLE GEOMETRY</span>
+    </div>
+    <div class="set-row">
       <span>PROFILE</span>
       <button class="act danger" id="btn-reset">RESET PROGRESS</button>
     </div>
@@ -161,6 +189,10 @@
 </div>
 <div id="toast" class="hidden"></div>
 
+<script src="three.min.js"></script>
+<script src="GLTFLoader.js"></script>
+<script src="audio.js"></script>
+<script src="viewer.js"></script>
 <script src="main.js"></script>
 </body>
 </html>

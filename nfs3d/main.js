@@ -1,38 +1,107 @@
 /* ================================================================
-   PAYBACK RUSH — Step 1 (premium UI build)
-   Home / hub / garage (buy·select·upgrade) / career / settings / exit
-   + $ economy, saves, cinematic backgrounds, parallax.
+   PAYBACK RUSH — v0.3
+   Home / hub / 3D garage (specs · customization) / career / settings
+   • garage switching is limited to cars you OWN (◄ ► keys, arrows, tabs)
+   • [1] or click the car  →  full 3D view (drag to rotate, scroll zoom)
+   • GLB drop-in: nfs3d/assets/models/<id>.glb replaces the sample car
+   • synthesized audio (engine idle + revs, UI ticks, purchases)
    ================================================================ */
 'use strict';
 
-/* ------------------------- DATA ------------------------- */
+/* ------------------------- CAR ROSTER ------------------------- */
 const CARS = [
   {
     id: 'falcon', name: 'FALCON GT', klass: 'STREET', price: 0,
-    art: 'assets/car_falcon.png',
-    base: { speed: 262, accel: 6.8, handling: 58, nitro: 45, brakes: 55 },
-    desc: 'The street coupe that started it all. Honest power, honest money. Tune it and it bites.',
+    art: 'assets/car_falcon.png', silhouette: 'coupe', paint: 0xd8352f,
+    base: { speed: 262, accel: 6.8, handling: 58, nitro: 45, brakes: 55, aero: 30 },
+    desc: 'The street coupe that started it all. Honest power, honest money — tune it and it bites.',
   },
   {
-    id: 'vortex', name: 'VORTEX R', klass: 'SUPER', price: 12000,
-    art: 'assets/car_vortex.png',
-    base: { speed: 318, accel: 5.2, handling: 76, nitro: 70, brakes: 70 },
-    desc: 'Track-bred supercar with active aero. Locked — until you can pay.',
+    id: 'vortex', name: 'VORTEX R', klass: 'SUPER', price: 0,
+    art: 'assets/car_vortex.png', silhouette: 'super', paint: 0x1a6bff,
+    base: { speed: 318, accel: 5.2, handling: 76, nitro: 70, brakes: 70, aero: 55 },
+    desc: 'Track-bred wedge with active aero and a screaming V10. The night league fears this one.',
   },
 ];
 
+/* ------------------------- UPGRADE CATALOG ------------------------- */
 const UPGRADES = [
-  { id: 'engine', name: 'ENGINE', desc: '+12 km/h / stage', cost: [700, 1200, 1900, 2800, 4000],
-    ico: '<path d="M8 3h8v4H8zM5 7h14v6H5zM10 13h4v4h-4zM8 17h8v4H8z" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/>' },
-  { id: 'tires', name: 'TIRES', desc: '+5 handling / stage', cost: [500, 900, 1500, 2200, 3200],
-    ico: '<circle cx="12" cy="12" r="8.5" fill="none" stroke="currentColor" stroke-width="1.5"/><circle cx="12" cy="12" r="3" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M12 3.5V9M12 15v5.5M3.5 12H9M15 12h5.5" stroke="currentColor" stroke-width="1.5"/>' },
-  { id: 'nitro', name: 'NITRO KIT', desc: '+6 nitro / stage', cost: [600, 1000, 1600, 2400, 3500],
-    ico: '<path d="M13 2 5 13h5l-2 9 8-11h-5l2-9z" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/>' },
-  { id: 'brakes', name: 'BRAKES', desc: '+4 braking / stage', cost: [400, 800, 1300, 2000, 2900],
-    ico: '<circle cx="12" cy="12" r="8.5" fill="none" stroke="currentColor" stroke-width="1.5"/><circle cx="12" cy="12" r="2.5" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M12 6.5a5.5 5.5 0 0 1 5.5 5.5" stroke="currentColor" stroke-width="2"/>' },
+  { id: 'engine', name: 'ENGINE', tier: 1, desc: '+12 km/h · -0.18s', cost: [700, 1200, 1900, 2800, 4000],
+    gain: { speed: 12, accel: -0.18 }, ico: 'M8 3h8v4H8zM5 7h14v6H5zM10 13h4v4h-4zM8 17h8v4H8z' },
+  { id: 'tires', name: 'TIRES', tier: 1, desc: '+5 grip · +2 brakes', cost: [500, 900, 1500, 2200, 3200],
+    gain: { handling: 5, brakes: 2 }, ico: 'CIRCLE' },
+  { id: 'brakes', name: 'BRAKES', tier: 1, desc: '+5 braking', cost: [400, 800, 1300, 2000, 2900],
+    gain: { brakes: 5 }, ico: 'M12 3.5a8.5 8.5 0 1 0 0 17 8.5 8.5 0 0 0 0-17zm0 6a2.5 2.5 0 1 1 0 5 2.5 2.5 0 0 1 0-5zM12 6.5a5.5 5.5 0 0 1 5.5 5.5' },
+  { id: 'nitro', name: 'NITRO KIT', tier: 1, desc: '+7 nitro', cost: [600, 1000, 1600, 2400, 3500],
+    gain: { nitro: 7 }, ico: 'M13 2 5 13h5l-2 9 8-11h-5l2-9z' },
+  { id: 'suspension', name: 'SUSPENSION', tier: 2, desc: '+6 grip · +2 aero', cost: [900, 1600, 2600, 4200, 6800],
+    gain: { handling: 6, aero: 2 }, ico: 'M12 2v4M12 18v4M7 6l10 3M17 9 7 12M7 12l10 3M17 15 7 18' },
+  { id: 'transmission', name: 'TRANSMISSION', tier: 2, desc: '-0.20s · +2 grip', cost: [1100, 1900, 3100, 5000, 8200],
+    gain: { accel: -0.2, handling: 2 }, ico: 'M6 3v8M6 11h12v10M18 3v8M9 21h6' },
+  { id: 'turbo', name: 'TURBO', tier: 2, desc: '+14 km/h · -0.14s', cost: [1500, 2600, 4200, 7000, 12000],
+    gain: { speed: 14, accel: -0.14 }, ico: 'M12 4a8 8 0 1 1-8 8M12 8v4l3 2' },
+  { id: 'weight', name: 'WEIGHT REDUCTION', tier: 3, desc: '-0.14s · +3 grip', cost: [2000, 3500, 6000, 9500, 15000],
+    gain: { accel: -0.14, handling: 3 }, ico: 'M4 8h16l-2 12H6zM9 8V5h6v3' },
+  { id: 'ecu', name: 'ECU TUNE', tier: 3, desc: '+7 km/h · +3 nitro', cost: [2500, 4500, 7500, 12000, 20000],
+    gain: { speed: 7, accel: -0.07, nitro: 3 }, ico: 'M5 5h14v14H5zM9 9h6v6H9zM12 2v3M12 19v3M2 12h3M19 12h3' },
+  { id: 'aero', name: 'AERO KIT', tier: 3, desc: '+8 downforce · +2 grip', cost: [3000, 5500, 9000, 14000, 22000],
+    gain: { aero: 8, handling: 2 }, ico: 'M3 14c4-6 14-6 18 0M6 14v3M18 14v3M3 14v3' },
+  { id: 'supercharger', name: 'SUPERCHARGER', tier: 4, desc: '+20 km/h · -0.10s', cost: [5000, 9000, 15000, 25000, 40000],
+    gain: { speed: 20, accel: -0.1 }, ico: 'M12 3 4 12h5l-1 9 8-11h-5l1-7z' },
+  { id: 'swap', name: 'ENGINE SWAP', tier: 4, desc: '+35 km/h · -0.40s · ENDGAME', cost: [25000, 40000, 65000, 100000, 150000],
+    gain: { speed: 35, accel: -0.4 }, ico: 'M4 7h12l-3-3M20 17H8l3 3M4 7v10M20 17V7' },
 ];
 const MAX_LEVEL = 5;
 
+/* ------------------------- COSMETICS ------------------------- */
+const COSMETICS = [
+  {
+    id: 'paint', name: 'PAINT',
+    items: [
+      { id: 'stock', name: 'STOCK', hex: null, price: 0 },
+      { id: 'cherry', name: 'CHERRY RED', hex: '#ff1f2e', price: 500 },
+      { id: 'midnight', name: 'MIDNIGHT', hex: '#12204a', price: 700 },
+      { id: 'electric', name: 'ELECTRIC BLUE', hex: '#1a6bff', price: 900 },
+      { id: 'toxic', name: 'TOXIC GREEN', hex: '#5dff2a', price: 1200 },
+      { id: 'pearl', name: 'PEARL WHITE', hex: '#eef1f6', price: 1800 },
+      { id: 'matte', name: 'MATTE BLACK', hex: '#15171c', price: 1500 },
+      { id: 'gold', name: 'SATIN GOLD', hex: '#e8b23a', price: 2500 },
+    ],
+  },
+  {
+    id: 'rims', name: 'RIMS',
+    items: [
+      { id: 'stock', name: 'STOCK', hex: null, price: 0 },
+      { id: 'gunmetal', name: 'GUNMETAL', hex: '#4a5058', price: 400 },
+      { id: 'chrome', name: 'CHROME', hex: '#f2f6ff', price: 900 },
+      { id: 'gold', name: 'GOLD SPLIT', hex: '#e0b046', price: 1200 },
+      { id: 'carbon', name: 'CARBON BLACK', hex: '#22242a', price: 1600 },
+    ],
+  },
+  {
+    id: 'glow', name: 'UNDERGLOW',
+    items: [
+      { id: 'off', name: 'OFF', hex: null, price: 0 },
+      { id: 'amber', name: 'AMBER', hex: '#ff9f1c', price: 800 },
+      { id: 'cyan', name: 'ICE CYAN', hex: '#20d0ff', price: 900 },
+      { id: 'red', name: 'BLOOD RED', hex: '#ff2030', price: 1000 },
+      { id: 'magenta', name: 'MAGENTA', hex: '#ff2fd0', price: 1100 },
+      { id: 'ice', name: 'WHITE ICE', hex: '#dff3ff', price: 1400 },
+    ],
+  },
+  {
+    id: 'tint', name: 'WINDOW TINT',
+    items: [
+      { id: 'none', name: 'NONE', hex: null, price: 0, level: 0 },
+      { id: 'light', name: 'LIGHT', hex: '#0a0d12', price: 200, level: 1 },
+      { id: 'medium', name: 'MEDIUM', hex: '#06080c', price: 400, level: 2 },
+      { id: 'limo', name: 'LIMO', hex: '#000000', price: 700, level: 3 },
+    ],
+  },
+];
+const DEFAULT_LOOK = { paint: 'stock', rims: 'stock', glow: 'off', tint: 'none' };
+
+/* ------------------------- RACES ------------------------- */
 const RACES = [
   { id: 'sunset', name: 'SUNSET STRIP SPRINT', map: 'DOWNTOWN COAST', dist: '2.4 KM', difficulty: 2, reward: 1500 },
 ];
@@ -42,48 +111,81 @@ const BG_OF = {
   'screen-exit': 'bg-home', 'screen-garage': 'bg-garage', 'screen-career': 'bg-career',
 };
 
-/* ------------------------- SAVE / SETTINGS ------------------------- */
-const SAVE_KEY = 'payback_rush_save_v1';
+/* ------------------------- SAVE ------------------------- */
+const SAVE_KEY = 'payback_rush_save_v2';
+const LEGACY_KEY = 'payback_rush_save_v1';
 const SETTINGS_KEY = 'payback_rush_settings_v1';
 
-/* localStorage can throw inside sandboxed iframes — keep a memory fallback. */
 const memStore = {};
 const store = {
   get(k) { try { return localStorage.getItem(k); } catch (e) { return (k in memStore) ? memStore[k] : null; } },
   set(k, v) { try { localStorage.setItem(k, v); } catch (e) { memStore[k] = v; } },
   remove(k) { try { localStorage.removeItem(k); } catch (e) { delete memStore[k]; } },
 };
-
 function loadJSON(key, fallback) {
   try {
     const v = JSON.parse(store.get(key));
     return (v === null || v === undefined) ? fallback : v;
   } catch (e) { return fallback; }
 }
+
 function freshSave() {
-  return { cash: 5000, owned: ['falcon'], selected: 'falcon', upgrades: { falcon: {} }, wins: 0 };
+  const upgrades = {};
+  const equipped = {};
+  CARS.forEach(c => { upgrades[c.id] = {}; equipped[c.id] = Object.assign({}, DEFAULT_LOOK); });
+  return {
+    cash: 5000,
+    wins: 0,
+    owned: CARS.map(c => c.id),          /* both sample cars unlocked */
+    selected: 'falcon',
+    upgrades,
+    cosOwned: COSMETICS.map(g => g.id + ':stock').concat(['tint:none']),
+    equipped,
+  };
 }
-let save = loadJSON(SAVE_KEY, null);
+/* migrate v1 → v2 (keeps cash, wins and installed parts) */
+function migrate() {
+  const old = loadJSON(LEGACY_KEY, null);
+  if (!old) return null;
+  const s = freshSave();
+  s.cash = typeof old.cash === 'number' ? old.cash : 5000;
+  s.wins = old.wins || 0;
+  CARS.forEach(c => { s.upgrades[c.id] = (old.upgrades && old.upgrades[c.id]) || {}; });
+  return s;
+}
+
+let save = loadJSON(SAVE_KEY, null) || migrate();
 let settings = loadJSON(SETTINGS_KEY, { quality: 'high', sound: true });
 
 function persist() { if (save) store.set(SAVE_KEY, JSON.stringify(save)); }
 function persistSettings() { store.set(SETTINGS_KEY, JSON.stringify(settings)); }
 
 const carById = id => CARS.find(c => c.id === id);
-const lvl = (carId, upId) =>
-  (save && save.upgrades[carId] && save.upgrades[carId][upId]) || 0;
+const isOwned = id => !!(save && save.owned.indexOf(id) >= 0);
+const ownedCars = () => CARS.filter(c => isOwned(c.id));
+const lvl = (carId, upId) => (save && save.upgrades[carId] && save.upgrades[carId][upId]) || 0;
 
 function effStats(car) {
-  const b = car.base;
-  const e = lvl(car.id, 'engine'), t = lvl(car.id, 'tires'),
-        n = lvl(car.id, 'nitro'), k = lvl(car.id, 'brakes');
-  return {
-    speed: b.speed + e * 12,
-    accel: Math.max(2.8, b.accel - e * 0.18),
-    handling: Math.min(100, b.handling + t * 5),
-    nitro: Math.min(100, b.nitro + n * 6),
-    brakes: Math.min(100, b.brakes + k * 4),
-  };
+  const s = Object.assign({}, car.base);
+  UPGRADES.forEach(u => {
+    const n = lvl(car.id, u.id);
+    if (!n) return;
+    Object.keys(u.gain).forEach(k => { s[k] = (s[k] || 0) + u.gain[k] * n; });
+  });
+  s.accel = Math.max(2.4, s.accel);
+  ['handling', 'nitro', 'brakes', 'aero'].forEach(k => { s[k] = Math.min(150, s[k]); });
+  return s;
+}
+function perfRating(car) {
+  const s = effStats(car);
+  return Math.round((s.speed - 240) * 1.2 + (8 - s.accel) * 42 + s.handling * 0.8 +
+    s.nitro * 0.5 + s.brakes * 0.4 + s.aero * 0.6);
+}
+
+/* ------------------------- AUDIO WRAPPER ------------------------- */
+function fx(name, arg) {
+  if (typeof AudioFX === 'undefined' || !AudioFX) return;
+  try { if (typeof AudioFX[name] === 'function') AudioFX[name](arg); } catch (e) {}
 }
 
 /* ------------------------- UI HELPERS ------------------------- */
@@ -93,6 +195,7 @@ const fmtCash = n => '$' + Math.round(n).toLocaleString('en-US');
 let toastTimer = null;
 function toast(msg) {
   const el = $('#toast');
+  if (!el) return;
   el.textContent = msg;
   el.classList.remove('hidden');
   clearTimeout(toastTimer);
@@ -114,53 +217,84 @@ function showModal(title, body, actions) {
   $('#modal').classList.remove('hidden');
 }
 
+let viewMode = false;
+
 function showScreen(id) {
   document.querySelectorAll('.screen').forEach(s => s.classList.add('hidden'));
   $('#' + id).classList.remove('hidden');
   $('#topbar').classList.toggle('hidden', id === 'screen-home' || id === 'screen-exit');
-  const bgId = BG_OF[id] || 'bg-home';
-  document.querySelectorAll('.bg').forEach(b =>
-    b.classList.toggle('active', b.id === bgId));
+  document.querySelectorAll('.bg').forEach(b => b.classList.toggle('active', b.id === (BG_OF[id] || 'bg-home')));
+  /* leaving the garage stops the showcase + engine */
+  if (id !== 'screen-garage') { setViewMode(false); if (typeof Viewer !== 'undefined') Viewer.stop(); }
   updateTopbar();
 }
-function updateTopbar() {
-  $('#cash').textContent = save ? fmtCash(save.cash) : '$—';
+function updateTopbar() { $('#cash').textContent = save ? fmtCash(save.cash) : '$—'; }
+
+/* ------------------------- LOOK (cosmetics → 3D) ------------------------- */
+function equippedLook(carId) {
+  const eq = (save && save.equipped && save.equipped[carId]) || DEFAULT_LOOK;
+  const find = (gid, iid) => {
+    const g = COSMETICS.find(x => x.id === gid);
+    return g.items.find(i => i.id === (eq[gid] || 'stock')) || g.items[0];
+  };
+  const paintItem = find('paint'), rimsItem = find('rims'), glowItem = find('glow'), tintItem = find('tint');
+  const car = carById(carId);
+  const hex = (item, dflt) => item.hex ? parseInt(item.hex.slice(1), 16) : dflt;
+  return {
+    paintHex: hex(paintItem, car.paint),
+    rimHex: hex(rimsItem, 0xc9ced8),
+    glowHex: glowItem.hex ? parseInt(glowItem.hex.slice(1), 16) : 0x000000,
+    tint: tintItem.level || 0,
+  };
 }
 
-/* ------------------------- GARAGE UI ------------------------- */
+/* ------------------------- GARAGE ------------------------- */
 let previewCarId = null;
+let viewerReady = false;
 
 function openGarage() {
-  previewCarId = save.selected;
-  renderGarage();
+  previewCarId = save.selected && isOwned(save.selected) ? save.selected : ownedCars()[0].id;
   showScreen('screen-garage');
+  ensureViewer();
+  setTab('specs');
+  renderGarage(true);
 }
 
-const LOCK_SVG = '<svg viewBox="0 0 24 24" width="13" height="13"><path d="M7 11V8a5 5 0 0 1 10 0v3M6 11h12v10H6z" fill="none" stroke="currentColor" stroke-width="2"/></svg>';
+function ensureViewer() {
+  if (typeof Viewer === 'undefined') return;
+  if (viewerReady) { Viewer.start(); return; }
+  const canvas = $('#car-canvas');
+  if (!canvas) return;
+  viewerReady = Viewer.init(canvas, settings.quality) === true;
+  $('#car-fallback').classList.toggle('hidden', viewerReady);
+  if (viewerReady) Viewer.resize();
+}
 
-function renderGarage() {
+function currentLook() { return equippedLook(previewCarId); }
+
+function renderGarage(swapCar) {
   const car = carById(previewCarId);
-  const owned = save.owned.includes(car.id);
   const st = effStats(car);
 
-  /* hero art */
-  const art = $('#car-art');
-  if (art.dataset.car !== car.id) {
-    art.dataset.car = car.id;
-    art.src = car.art;
-    art.style.animation = 'none';
-    void art.offsetWidth;               /* restart entrance animation */
-    art.style.animation = '';
+  /* 3D showcase */
+  if (typeof Viewer !== 'undefined' && Viewer.ok) {
+    if (swapCar || Viewer.currentId !== car.id) Viewer.showCar(car, currentLook());
+    else Viewer.applyLook(currentLook());
+  } else {
+    const art = $('#car-art');
+    if (art && art.dataset.car !== car.id) { art.dataset.car = car.id; art.src = car.art; }
   }
+
   $('#car-name').textContent = car.name;
   $('#car-class').textContent = car.klass + ' CLASS';
   $('#car-desc').textContent = car.desc;
+  $('#car-rating').textContent = perfRating(car);
 
-  /* car select tabs */
+  /* owned-car tabs (locked cars are listed but not drivable) */
   const list = $('#car-list');
   list.innerHTML = '';
-  CARS.forEach(c => {
-    const has = save.owned.includes(c.id);
+  CARS.forEach((c, i) => {
+    const has = isOwned(c.id);
     const card = document.createElement('button');
     card.className = 'car-card' + (c.id === previewCarId ? ' active' : '') + (has ? '' : ' lockedcard');
     card.innerHTML =
@@ -169,62 +303,48 @@ function renderGarage() {
       '<div class="cc-name">' + c.name + '</div>' +
       '<div class="cc-sub">' +
       (has
-        ? '<span class="owned">OWNED' + (save.selected === c.id ? ' · SELECTED' : '') + '</span>'
+        ? '<span class="owned">' + (save.selected === c.id ? 'ACTIVE' : 'OWNED') + '</span>'
         : '<span class="locked">LOCKED · ' + fmtCash(c.price) + '</span>') +
       '</div>';
-    card.onclick = () => { previewCarId = c.id; renderGarage(); };
+    card.onclick = () => {
+      if (!has) { fx('error'); toast('YOU DO NOT OWN ' + c.name); return; }
+      if (c.id === previewCarId) return;
+      previewCarId = c.id;
+      fx('whoosh');
+      renderGarage(true);
+    };
+    card.dataset.idx = String(i);
     list.appendChild(card);
   });
 
-  /* spec bars */
+  /* spec bars — the only thing on the default garage panel */
   const specs = [
-    ['TOP SPEED', st.speed + ' km/h', st.speed / 360 * 100],
-    ['0-100 KM/H', st.accel.toFixed(1) + ' s', (8 - st.accel) / 5.2 * 100],
-    ['HANDLING', st.handling + ' / 100', st.handling],
-    ['NITRO', st.nitro + ' / 100', st.nitro],
-    ['BRAKES', st.brakes + ' / 100', st.brakes],
+    ['TOP SPEED', st.speed + ' km/h', (st.speed - 240) / 200 * 100],
+    ['0–100 KM/H', st.accel.toFixed(1) + ' s', (8 - st.accel) / 5.5 * 100],
+    ['GRIP', st.handling + ' / 150', st.handling / 1.5],
+    ['NITRO', st.nitro + ' / 150', st.nitro / 1.5],
+    ['BRAKES', st.brakes + ' / 150', st.brakes / 1.5],
+    ['DOWNFORCE', st.aero + ' / 150', st.aero / 1.5],
   ];
   $('#spec-bars').innerHTML = specs.map(s =>
     '<div class="spec"><div class="row"><span>' + s[0] + '</span><b>' + s[1] + '</b></div>' +
     '<div class="bar"><div class="fill" style="width:' + Math.max(4, Math.min(100, s[2])) + '%"></div></div></div>'
   ).join('');
 
-  /* upgrade modules */
-  const up = $('#upgrade-list');
-  up.innerHTML = '';
-  UPGRADES.forEach(u => {
-    const level = lvl(car.id, u.id);
-    const maxed = level >= MAX_LEVEL;
-    const cost = maxed ? 0 : u.cost[level];
-    const row = document.createElement('div');
-    row.className = 'up-row';
-    let pips = '';
-    for (let i = 0; i < MAX_LEVEL; i++) pips += '<div class="pip' + (i < level ? ' on' : '') + '"></div>';
-    row.innerHTML =
-      '<svg class="up-ico" viewBox="0 0 24 24">' + u.ico + '</svg>' +
-      '<div class="up-info"><div class="n">' + u.name + '</div><div class="d">' + u.desc + '</div></div>' +
-      '<div class="pips">' + pips + '</div>';
-    const btn = document.createElement('button');
-    btn.className = 'buy-up' + (maxed ? ' max' : '');
-    btn.textContent = maxed ? 'MAX STAGE' : 'INSTALL · ' + fmtCash(cost);
-    btn.disabled = maxed || !owned || save.cash < cost;
-    btn.onclick = () => buyUpgrade(car, u);
-    row.appendChild(btn);
-    up.appendChild(row);
-  });
+  renderUpgrades(car);
+  renderCosmetics(car);
 
-  /* actions */
-  const sel = $('#btn-select');
-  const buy = $('#btn-buy');
-  if (owned) {
+  /* select / buy */
+  const sel = $('#btn-select'), buy = $('#btn-buy');
+  if (isOwned(car.id)) {
     buy.classList.add('hidden');
     sel.classList.remove('hidden');
-    sel.textContent = save.selected === car.id ? 'SELECTED ✓' : 'SELECT';
+    sel.textContent = save.selected === car.id ? 'SELECTED ✓' : 'SET AS ACTIVE';
     sel.disabled = save.selected === car.id;
     sel.onclick = () => {
       save.selected = car.id; persist();
-      toast(car.name + ' SELECTED');
-      renderGarage();
+      fx('select'); toast(car.name + ' IS NOW YOUR ACTIVE CAR');
+      renderGarage(false);
     };
   } else {
     sel.classList.add('hidden');
@@ -235,28 +355,151 @@ function renderGarage() {
       save.cash -= car.price;
       save.owned.push(car.id);
       save.upgrades[car.id] = save.upgrades[car.id] || {};
-      persist();
-      toast(car.name + ' PURCHASED!');
-      renderGarage();
+      save.equipped[car.id] = Object.assign({}, DEFAULT_LOOK);
+      persist(); fx('buy'); toast(car.name + ' PURCHASED!');
+      renderGarage(false);
     };
   }
   updateTopbar();
+}
+
+const LOCK_SVG = '<svg viewBox="0 0 24 24" width="13" height="13"><path d="M7 11V8a5 5 0 0 1 10 0v3M6 11h12v10H6z" fill="none" stroke="currentColor" stroke-width="2"/></svg>';
+const TIER_NAME = { 1: 'STAGE I', 2: 'STAGE II', 3: 'STAGE III', 4: 'ELITE' };
+
+function renderUpgrades(car) {
+  const box = $('#upgrade-list');
+  if (!box) return;
+  box.innerHTML = '';
+  UPGRADES.forEach(u => {
+    const level = lvl(car.id, u.id);
+    const maxed = level >= MAX_LEVEL;
+    const cost = maxed ? 0 : u.cost[level];
+    const row = document.createElement('div');
+    row.className = 'up-row tier' + u.tier;
+    let pips = '';
+    for (let i = 0; i < MAX_LEVEL; i++) pips += '<div class="pip' + (i < level ? ' on' : '') + '"></div>';
+    row.innerHTML =
+      '<div class="up-head">' +
+      '<svg class="up-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="round"><path d="' + u.ico.replace('CIRCLE', '') + '"/>' +
+      (u.id === 'tires' ? '<circle cx="12" cy="12" r="8.5"/><circle cx="12" cy="12" r="3"/>' : '') +
+      '</svg>' +
+      '<div class="up-info"><div class="n">' + u.name + '<em>' + TIER_NAME[u.tier] + '</em></div>' +
+      '<div class="d">' + u.desc + '</div></div>' +
+      '<div class="pips">' + pips + '</div></div>';
+    const btn = document.createElement('button');
+    btn.className = 'buy-up' + (maxed ? ' max' : '');
+    btn.textContent = maxed ? 'MAX STAGE' : 'INSTALL · ' + fmtCash(cost);
+    btn.disabled = maxed || !isOwned(car.id) || save.cash < cost;
+    btn.onclick = () => buyUpgrade(car, u);
+    row.appendChild(btn);
+    box.appendChild(row);
+  });
 }
 
 function buyUpgrade(car, u) {
   const level = lvl(car.id, u.id);
   if (level >= MAX_LEVEL) return;
   const cost = u.cost[level];
-  if (save.cash < cost) { toast('NOT ENOUGH CASH'); return; }
+  if (save.cash < cost) { fx('error'); toast('NOT ENOUGH CASH'); return; }
   save.cash -= cost;
   save.upgrades[car.id] = save.upgrades[car.id] || {};
   save.upgrades[car.id][u.id] = level + 1;
   persist();
+  fx('buy'); fx('rev', 0.9);
   toast(u.name + ' → STAGE ' + (level + 1));
-  renderGarage();
+  renderGarage(false);
 }
 
-/* ------------------------- CAREER UI ------------------------- */
+/* ------------------------- CUSTOMIZATION ------------------------- */
+function cosOwnedKey(gid, iid) { return gid + ':' + iid; }
+function hasCosmetic(gid, iid) {
+  return !!(save && save.cosOwned && save.cosOwned.indexOf(cosOwnedKey(gid, iid)) >= 0);
+}
+
+function renderCosmetics(car) {
+  const box = $('#cosmetic-list');
+  if (!box) return;
+  box.innerHTML = '';
+  const eq = (save.equipped && save.equipped[car.id]) || DEFAULT_LOOK;
+
+  COSMETICS.forEach(group => {
+    const wrap = document.createElement('div');
+    wrap.className = 'cos-group';
+    wrap.innerHTML = '<div class="cos-name">' + group.name + '</div>';
+    const chips = document.createElement('div');
+    chips.className = 'cos-chips';
+    group.items.forEach(item => {
+      const owned = hasCosmetic(group.id, item.id);
+      const active = (eq[group.id] || 'stock') === item.id;
+      const chip = document.createElement('button');
+      chip.className = 'cos-chip' + (active ? ' on' : '') + (owned ? '' : ' locked');
+      chip.innerHTML =
+        '<span class="sw" style="background:' + (item.hex || 'linear-gradient(135deg,#3a4150,#1a1d24)') + '"></span>' +
+        '<span class="cn">' + item.name + '</span>' +
+        '<span class="cp">' + (owned ? (active ? 'EQUIPPED' : 'EQUIP') : fmtCash(item.price)) + '</span>';
+      chip.onclick = () => {
+        if (owned) {
+          save.equipped[car.id] = save.equipped[car.id] || Object.assign({}, DEFAULT_LOOK);
+          save.equipped[car.id][group.id] = item.id;
+          persist(); fx('click');
+          if (typeof Viewer !== 'undefined' && Viewer.ok) Viewer.applyLook(currentLook());
+          renderCosmetics(car);
+          toast(item.name + ' EQUIPPED');
+        } else if (save.cash >= item.price) {
+          save.cash -= item.price;
+          save.cosOwned = save.cosOwned || [];
+          save.cosOwned.push(cosOwnedKey(group.id, item.id));
+          save.equipped[car.id] = save.equipped[car.id] || Object.assign({}, DEFAULT_LOOK);
+          save.equipped[car.id][group.id] = item.id;
+          persist(); fx('buy');
+          if (typeof Viewer !== 'undefined' && Viewer.ok) Viewer.applyLook(currentLook());
+          renderCosmetics(car); updateTopbar();
+          toast(item.name + ' INSTALLED');
+        } else { fx('error'); toast('NOT ENOUGH CASH'); }
+      };
+      chips.appendChild(chip);
+    });
+    wrap.appendChild(chips);
+    box.appendChild(wrap);
+  });
+}
+
+/* ------------------------- PANEL TABS / VIEW MODE ------------------------- */
+function setTab(which) {
+  const specs = which === 'specs';
+  $('#tab-specs').classList.toggle('on', specs);
+  $('#tab-custom').classList.toggle('on', !specs);
+  $('#panel-specs').classList.toggle('hidden', !specs);
+  $('#panel-custom').classList.toggle('hidden', specs);
+}
+
+function setViewMode(on) {
+  if (on === viewMode) { if (!on) return; }
+  viewMode = !!on;
+  const g = $('#screen-garage');
+  if (g) g.classList.toggle('view-mode', viewMode);
+  const btn = $('#btn-view3d');
+  if (btn) btn.innerHTML = viewMode ? '<b>ESC</b> BACK TO SPECS' : '<b>1</b> VIEW &amp; ROTATE 3D';
+  if (typeof Viewer !== 'undefined' && Viewer.ok) {
+    Viewer.setViewMode(viewMode);
+    /* panel hides/shows -> the canvas box changed size */
+    setTimeout(() => { try { Viewer.resize(); } catch (e) {} }, 60);
+  }
+  if (viewMode) { fx('whoosh'); fx('engineStart'); }
+  else fx('engineStop');
+}
+
+function switchCar(dir) {
+  const list = ownedCars();
+  if (list.length < 2) { fx('error'); toast('YOU ONLY OWN ONE CAR'); return; }
+  let i = list.findIndex(c => c.id === previewCarId);
+  i = (i + dir + list.length) % list.length;
+  previewCarId = list[i].id;
+  fx('whoosh'); fx('rev', 0.6);
+  renderGarage(true);
+}
+
+/* ------------------------- CAREER ------------------------- */
 function renderCareer() {
   const list = $('#race-list');
   list.innerHTML = '';
@@ -280,7 +523,7 @@ function renderCareer() {
   });
 }
 
-/* ------------------------- SETTINGS UI ------------------------- */
+/* ------------------------- SETTINGS ------------------------- */
 function renderSettings() {
   document.querySelectorAll('#quality-seg button').forEach(b =>
     b.classList.toggle('on', b.dataset.q === settings.quality));
@@ -288,12 +531,26 @@ function renderSettings() {
     b.classList.toggle('on', (b.dataset.s === 'on') === settings.sound));
 }
 
-/* ------------------------- NAV WIRING ------------------------- */
+function detectGLB() {
+  const el = $('#glb-status');
+  if (!el || typeof fetch !== 'function') return;
+  Promise.all(CARS.map(c =>
+    fetch('assets/models/' + c.id + '.glb', { method: 'HEAD' }).then(r => r.ok).catch(() => false)))
+    .then(res => {
+      const n = res.filter(Boolean).length;
+      el.textContent = n === CARS.length ? 'GLB MODELS LOADED'
+        : n ? n + ' GLB · ' + (CARS.length - n) + ' SAMPLE' : 'SAMPLE GEOMETRY';
+      el.classList.toggle('live', n > 0);
+    });
+}
+
+/* ------------------------- NAV ------------------------- */
 function startNewGame() {
   save = freshSave();
   persist();
   updateTopbar();
   showScreen('screen-hub');
+  fx('buy');
   toast('PROFILE CREATED · ' + fmtCash(save.cash));
 }
 
@@ -308,14 +565,14 @@ function wireUI() {
       ]);
     } else startNewGame();
   };
-  $('#btn-continue').onclick = () => { if (save) showScreen('screen-hub'); };
+  $('#btn-continue').onclick = () => { if (save) { fx('click'); showScreen('screen-hub'); } };
   $('#btn-exit').onclick = () => { showScreen('screen-exit'); window.close(); };
 
   $('#btn-garage').onclick = openGarage;
   $('#btn-career').onclick = () => { renderCareer(); showScreen('screen-career'); };
   $('#btn-hub-back').onclick = () => showScreen('screen-home');
-  $('#btn-garage-back').onclick = () => showScreen('screen-hub');
-  $('#btn-career-back').onclick = () => showScreen('screen-hub');
+  $('#btn-garage-back').onclick = () => { fx('back'); showScreen('screen-hub'); };
+  $('#btn-career-back').onclick = () => { fx('back'); showScreen('screen-hub'); };
 
   $('#btn-settings').onclick = () => { settingsReturn = 'screen-home'; showScreen('screen-settings'); renderSettings(); };
   $('#btn-hub-settings').onclick = () => { settingsReturn = 'screen-hub'; showScreen('screen-settings'); renderSettings(); };
@@ -323,44 +580,96 @@ function wireUI() {
 
   document.querySelectorAll('#quality-seg button').forEach(b => b.onclick = () => {
     settings.quality = b.dataset.q; persistSettings(); renderSettings();
+    if (typeof Viewer !== 'undefined') Viewer.setQuality(b.dataset.q);
     toast('QUALITY: ' + b.dataset.q.toUpperCase());
   });
   document.querySelectorAll('#sound-seg button').forEach(b => b.onclick = () => {
     settings.sound = b.dataset.s === 'on'; persistSettings(); renderSettings();
+    fx('setEnabled', settings.sound);
+    if (settings.sound) fx('click');
+    toast('SOUND ' + (settings.sound ? 'ON' : 'OFF'));
   });
   $('#btn-reset').onclick = () => showModal('RESET PROGRESS', 'Delete your profile and start over?', [
     { label: 'CANCEL' },
     {
       label: 'DELETE', primary: true, cb: () => {
-        store.remove(SAVE_KEY);
+        store.remove(SAVE_KEY); store.remove(LEGACY_KEY);
         save = null;
         refreshHome(); updateTopbar();
         toast('PROFILE DELETED');
       },
     },
   ]);
+
+  /* garage panel */
+  $('#tab-specs').onclick = () => setTab('specs');
+  $('#tab-custom').onclick = () => { setTab('custom'); fx('click'); };
+  $('#btn-car-prev').onclick = () => switchCar(-1);
+  $('#btn-car-next').onclick = () => switchCar(1);
+  $('#btn-view3d').onclick = () => setViewMode(!viewMode);
+
+  const canvas = $('#car-canvas');
+  if (canvas) {
+    /* click (without dragging) the car → full 3D view */
+    canvas.addEventListener('pointerdown', e => { canvas._sx = e.clientX; canvas._sy = e.clientY; });
+    canvas.addEventListener('pointerup', e => {
+      const moved = Math.abs(e.clientX - (canvas._sx || 0)) + Math.abs(e.clientY - (canvas._sy || 0));
+      if (!viewMode && moved < 8) setViewMode(true);
+    });
+  }
 }
-function refreshHome() {
-  $('#btn-continue').disabled = !save;
+function refreshHome() { $('#btn-continue').disabled = !save; }
+
+/* ------------------------- KEYBOARD ------------------------- */
+function wireKeys() {
+  window.addEventListener('keydown', e => {
+    const garageOpen = !$('#screen-garage').classList.contains('hidden');
+    const modalOpen = !$('#modal').classList.contains('hidden');
+    if (!garageOpen || modalOpen) return;
+    if (e.key === 'ArrowLeft') { e.preventDefault(); switchCar(-1); }
+    else if (e.key === 'ArrowRight') { e.preventDefault(); switchCar(1); }
+    else if (e.key === '1') { e.preventDefault(); setViewMode(true); }
+    else if (e.key === 'Escape') {
+      e.preventDefault();
+      if (viewMode) setViewMode(false);
+      else { fx('back'); showScreen('screen-hub'); }
+    }
+  });
+}
+
+/* ------------------------- UI SOUND DELEGATION ------------------------- */
+function wireSound() {
+  if (typeof AudioFX === 'undefined') return;
+  if (settings.sound === false) AudioFX.enabled = false;
+  let last = null;
+  document.addEventListener('pointerover', e => {
+    const b = e.target.closest ? e.target.closest('button, .car-card, .cos-chip') : null;
+    if (b && b !== last && !b.disabled) { last = b; fx('hover'); }
+    if (!b) last = null;
+  });
+  document.addEventListener('click', e => {
+    const b = e.target.closest ? e.target.closest('button') : null;
+    if (b && !b.disabled) fx('click');
+  });
 }
 
 /* ------------------------- CINEMATICS ------------------------- */
 function initFX() {
-  /* mouse parallax on background layers */
   window.addEventListener('pointermove', e => {
     const x = e.clientX / innerWidth - 0.5;
     const y = e.clientY / innerHeight - 0.5;
     document.documentElement.style.setProperty('--px', x.toFixed(3));
     document.documentElement.style.setProperty('--py', y.toFixed(3));
   });
-  /* hide loader once everything (incl. art) is loaded */
-  window.addEventListener('load', () =>
-    setTimeout(() => $('#loader').classList.add('done'), 450));
-  setTimeout(() => $('#loader').classList.add('done'), 4000); /* fallback */
+  window.addEventListener('load', () => setTimeout(() => $('#loader').classList.add('done'), 450));
+  setTimeout(() => $('#loader').classList.add('done'), 4000);
 }
 
 /* ------------------------- BOOT ------------------------- */
 wireUI();
+wireKeys();
+wireSound();
 refreshHome();
 updateTopbar();
 initFX();
+detectGLB();

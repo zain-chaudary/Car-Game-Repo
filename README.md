@@ -13,6 +13,16 @@ pip install -r requirements.txt
 python main.py
 ```
 
+## Live browser preview (no terminal skills needed)
+
+```bash
+python web_server.py
+```
+
+Then open `http://localhost:8080`. The game runs headless and is streamed to
+your browser as live video; drive with your keyboard (arrows/WASD, SPACE to
+start) or the on-screen touch buttons.
+
 ## Controls
 
 | Key                     | Action              |

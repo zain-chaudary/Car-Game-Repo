@@ -99,8 +99,8 @@ class Game:
             return
         self.enemies.append(EnemyCar(random.choice(open_lanes), self.scroll_speed))
 
-    def update_playing(self):
-        keys = pygame.key.get_pressed()
+    def update_playing(self, keys=None):
+        keys = pygame.key.get_pressed() if keys is None else keys
 
         # Speed: ramps up over time; boost with UP/W, brake with DOWN/S.
         self.scroll_speed = min(self.scroll_speed + SPEED_INCREMENT, MAX_SCROLL_SPEED)

@@ -1,1 +1,2 @@
 pygame>=2.5
+Pillow>=10   # optional: JPEG frames for the browser preview (web_server.py)

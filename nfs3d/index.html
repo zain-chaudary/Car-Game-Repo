@@ -1,0 +1,124 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<title>PAYBACK RUSH — 3D Street Racing</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:ital,wght@0,500;0,600;0,700;1,600;1,700&family=Rajdhani:wght@500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<canvas id="scene"></canvas>
+<div id="vignette"></div>
+<div id="scanlines"></div>
+
+<header id="topbar" class="hidden">
+  <div class="tb-left">PAYBACK&nbsp;RUSH</div>
+  <div id="cash">$5,000</div>
+</header>
+
+<!-- ============ HOME ============ -->
+<section id="screen-home" class="screen">
+  <div class="title-wrap">
+    <div class="kicker">WELCOME TO THE CITY OF</div>
+    <h1 class="game-title">PAYBACK <span>RUSH</span></h1>
+    <div class="tagline">OWN THE NIGHT · EARN THE STREETS</div>
+  </div>
+  <nav class="menu">
+    <button class="mbtn" id="btn-new">NEW GAME</button>
+    <button class="mbtn" id="btn-continue">CONTINUE</button>
+    <button class="mbtn" id="btn-settings">SETTINGS</button>
+    <button class="mbtn" id="btn-exit">EXIT</button>
+  </nav>
+  <div class="foot">STEP 1 · LAYOUT — GARAGE — CAREER</div>
+</section>
+
+<!-- ============ HUB ============ -->
+<section id="screen-hub" class="screen hidden">
+  <h2 class="screen-title">MAIN <em>HUB</em></h2>
+  <nav class="menu">
+    <button class="mbtn" id="btn-garage">GARAGE</button>
+    <button class="mbtn" id="btn-career">CAREER</button>
+    <button class="mbtn small" id="btn-hub-settings">SETTINGS</button>
+    <button class="mbtn small" id="btn-hub-back">HOME</button>
+  </nav>
+</section>
+
+<!-- ============ GARAGE ============ -->
+<section id="screen-garage" class="screen split hidden">
+  <div class="panel left">
+    <h2 class="panel-title">GARAGE</h2>
+    <div id="car-list"></div>
+    <button class="back" id="btn-garage-back">← HUB</button>
+  </div>
+  <div class="panel right">
+    <div class="car-head">
+      <h3 id="car-name">—</h3>
+      <div id="car-class" class="badge">—</div>
+    </div>
+    <p id="car-desc" class="desc"></p>
+    <div id="spec-bars"></div>
+    <h4 class="sub-title">UPGRADES</h4>
+    <div id="upgrade-list"></div>
+    <div class="actions">
+      <button class="act primary" id="btn-select">SELECT</button>
+      <button class="act" id="btn-buy">BUY</button>
+    </div>
+  </div>
+</section>
+
+<!-- ============ CAREER ============ -->
+<section id="screen-career" class="screen hidden">
+  <h2 class="screen-title">CAR<em>EER</em></h2>
+  <div id="race-list"></div>
+  <button class="back" id="btn-career-back">← HUB</button>
+</section>
+
+<!-- ============ SETTINGS ============ -->
+<section id="screen-settings" class="screen hidden">
+  <h2 class="screen-title">SETT<em>INGS</em></h2>
+  <div class="panel settings">
+    <div class="set-row">
+      <span>GRAPHICS QUALITY</span>
+      <div class="seg" id="quality-seg">
+        <button data-q="high">HIGH</button>
+        <button data-q="medium">MED</button>
+        <button data-q="low">LOW</button>
+      </div>
+    </div>
+    <div class="set-row">
+      <span>SOUND</span>
+      <div class="seg" id="sound-seg">
+        <button data-s="on">ON</button>
+        <button data-s="off">OFF</button>
+      </div>
+    </div>
+    <div class="set-row">
+      <span>PROFILE</span>
+      <button class="act danger" id="btn-reset">RESET PROGRESS</button>
+    </div>
+  </div>
+  <button class="back" id="btn-settings-back">← BACK</button>
+</section>
+
+<!-- ============ EXIT ============ -->
+<section id="screen-exit" class="screen hidden">
+  <h2 class="screen-title">SEE YOU ON THE <em>STREETS</em></h2>
+  <p class="exit-note">You can close this tab now.<br>Your profile is saved automatically.</p>
+</section>
+
+<!-- ============ MODAL / TOAST ============ -->
+<div id="modal" class="hidden">
+  <div class="modal-box">
+    <h3 id="modal-title"></h3>
+    <p id="modal-body"></p>
+    <div id="modal-actions"></div>
+  </div>
+</div>
+<div id="toast" class="hidden"></div>
+
+<script src="three.min.js"></script>
+<script src="main.js"></script>
+</body>
+</html>

@@ -8,59 +8,96 @@
 <link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:ital,wght@0,500;0,600;0,700;1,600;1,700&family=Rajdhani:wght@500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="style.css">
 </head>
-<body>
-<canvas id="scene"></canvas>
-<div id="vignette"></div>
-<div id="scanlines"></div>
+<body data-screen="home">
+
+<!-- cinematic background layers (crossfade + parallax) -->
+<div class="bg active" id="bg-home"></div>
+<div class="bg" id="bg-garage"></div>
+<div class="bg" id="bg-career"></div>
+<div id="fx-vignette"></div>
+<div id="fx-leak"></div>
+<div id="fx-grain"></div>
+
+<div id="loader">
+  <div class="loader-logo">PAYBACK<span>RUSH</span></div>
+  <div class="loader-bar"><i></i></div>
+  <div class="loader-tag">LOADING CITY…</div>
+</div>
 
 <header id="topbar" class="hidden">
-  <div class="tb-left">PAYBACK&nbsp;RUSH</div>
-  <div id="cash">$5,000</div>
+  <div class="tb-logo">PAYBACK<span>RUSH</span></div>
+  <div class="tb-right">
+    <div class="chip cash">
+      <svg viewBox="0 0 24 24"><path d="M12 2v20M17 6.5c0-2-2.2-3-5-3s-5 1.2-5 3.2c0 4.6 10 2.6 10 7.3 0 2.2-2.2 3.5-5 3.5s-5-1.2-5-3.2" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+      <b id="cash">$5,000</b>
+    </div>
+  </div>
 </header>
 
 <!-- ============ HOME ============ -->
 <section id="screen-home" class="screen">
-  <div class="title-wrap">
-    <div class="kicker">WELCOME TO THE CITY OF</div>
-    <h1 class="game-title">PAYBACK <span>RUSH</span></h1>
-    <div class="tagline">OWN THE NIGHT · EARN THE STREETS</div>
+  <div class="home-left">
+    <div class="eyebrow"><i></i>ARUZA CITY · NIGHT LEAGUE</div>
+    <h1 class="logo">PAYBACK<span>RUSH</span></h1>
+    <div class="tagline">OWN THE NIGHT — EARN THE STREETS</div>
+    <nav class="menu">
+      <button class="mbtn" id="btn-new"><span class="num">01</span><span class="lbl">NEW GAME</span><span class="arr"></span></button>
+      <button class="mbtn" id="btn-continue"><span class="num">02</span><span class="lbl">CONTINUE</span><span class="arr"></span></button>
+      <button class="mbtn" id="btn-settings"><span class="num">03</span><span class="lbl">SETTINGS</span><span class="arr"></span></button>
+      <button class="mbtn" id="btn-exit"><span class="num">04</span><span class="lbl">EXIT</span><span class="arr"></span></button>
+    </nav>
   </div>
-  <nav class="menu">
-    <button class="mbtn" id="btn-new">NEW GAME</button>
-    <button class="mbtn" id="btn-continue">CONTINUE</button>
-    <button class="mbtn" id="btn-settings">SETTINGS</button>
-    <button class="mbtn" id="btn-exit">EXIT</button>
-  </nav>
-  <div class="foot">STEP 1 · LAYOUT — GARAGE — CAREER</div>
+  <div class="home-foot">
+    <span>STEP 1 · GARAGE &amp; CAREER</span>
+    <span>v0.2 · PREMIUM BUILD</span>
+  </div>
 </section>
 
 <!-- ============ HUB ============ -->
 <section id="screen-hub" class="screen hidden">
-  <h2 class="screen-title">MAIN <em>HUB</em></h2>
-  <nav class="menu">
-    <button class="mbtn" id="btn-garage">GARAGE</button>
-    <button class="mbtn" id="btn-career">CAREER</button>
-    <button class="mbtn small" id="btn-hub-settings">SETTINGS</button>
-    <button class="mbtn small" id="btn-hub-back">HOME</button>
-  </nav>
+  <div class="hub-head">
+    <div class="eyebrow"><i></i>MAIN MENU</div>
+    <h2 class="h2">CHOOSE YOUR <em>PATH</em></h2>
+  </div>
+  <div class="hub-tiles">
+    <button class="tile" id="btn-garage">
+      <svg class="tile-ico" viewBox="0 0 24 24"><path d="M3 13l2-5h14l2 5v5h-3a2.5 2.5 0 0 1-5 0H11a2.5 2.5 0 0 1-5 0H3v-5zm4-3h10M7 13h.01M17 13h.01" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      <div class="tile-t">GARAGE</div>
+      <div class="tile-d">CARS · SPECS · UPGRADES</div>
+      <span class="tile-arr">›</span>
+    </button>
+    <button class="tile" id="btn-career">
+      <svg class="tile-ico" viewBox="0 0 24 24"><path d="M5 21V4m0 0h13l-2.5 4L18 12H5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      <div class="tile-t">CAREER</div>
+      <div class="tile-d">RACES · MAPS · REWARDS</div>
+      <span class="tile-arr">›</span>
+    </button>
+  </div>
+  <div class="hub-links">
+    <button class="linkbtn" id="btn-hub-settings">SETTINGS</button>
+    <button class="linkbtn" id="btn-hub-back">TITLE SCREEN</button>
+  </div>
 </section>
 
 <!-- ============ GARAGE ============ -->
-<section id="screen-garage" class="screen split hidden">
-  <div class="panel left">
-    <h2 class="panel-title">GARAGE</h2>
-    <div id="car-list"></div>
-    <button class="back" id="btn-garage-back">← HUB</button>
-  </div>
-  <div class="panel right">
-    <div class="car-head">
-      <h3 id="car-name">—</h3>
-      <div id="car-class" class="badge">—</div>
+<section id="screen-garage" class="screen garage hidden">
+  <div class="g-left">
+    <div class="car-stage">
+      <img id="car-art" src="assets/car_falcon.png" alt="car">
+      <div class="car-plate">
+        <h3 id="car-name">—</h3>
+        <div id="car-class" class="badge">—</div>
+      </div>
     </div>
+    <div id="car-list" class="car-tabs"></div>
+    <button class="linkbtn g-back" id="btn-garage-back">‹ BACK TO HUB</button>
+  </div>
+
+  <div class="g-right">
     <p id="car-desc" class="desc"></p>
     <div id="spec-bars"></div>
-    <h4 class="sub-title">UPGRADES</h4>
-    <div id="upgrade-list"></div>
+    <h4 class="sub-title">PERFORMANCE UPGRADES</h4>
+    <div id="upgrade-list" class="up-grid"></div>
     <div class="actions">
       <button class="act primary" id="btn-select">SELECT</button>
       <button class="act" id="btn-buy">BUY</button>
@@ -70,14 +107,20 @@
 
 <!-- ============ CAREER ============ -->
 <section id="screen-career" class="screen hidden">
-  <h2 class="screen-title">CAR<em>EER</em></h2>
+  <div class="hub-head">
+    <div class="eyebrow"><i></i>CAREER MODE</div>
+    <h2 class="h2">PROVE <em>YOURSELF</em></h2>
+  </div>
   <div id="race-list"></div>
-  <button class="back" id="btn-career-back">← HUB</button>
+  <button class="linkbtn" id="btn-career-back">‹ BACK TO HUB</button>
 </section>
 
 <!-- ============ SETTINGS ============ -->
 <section id="screen-settings" class="screen hidden">
-  <h2 class="screen-title">SETT<em>INGS</em></h2>
+  <div class="hub-head">
+    <div class="eyebrow"><i></i>SYSTEM</div>
+    <h2 class="h2">SETT<em>INGS</em></h2>
+  </div>
   <div class="panel settings">
     <div class="set-row">
       <span>GRAPHICS QUALITY</span>
@@ -99,12 +142,12 @@
       <button class="act danger" id="btn-reset">RESET PROGRESS</button>
     </div>
   </div>
-  <button class="back" id="btn-settings-back">← BACK</button>
+  <button class="linkbtn" id="btn-settings-back">‹ BACK</button>
 </section>
 
 <!-- ============ EXIT ============ -->
 <section id="screen-exit" class="screen hidden">
-  <h2 class="screen-title">SEE YOU ON THE <em>STREETS</em></h2>
+  <h2 class="h2">SEE YOU ON THE <em>STREETS</em></h2>
   <p class="exit-note">You can close this tab now.<br>Your profile is saved automatically.</p>
 </section>
 
@@ -118,7 +161,6 @@
 </div>
 <div id="toast" class="hidden"></div>
 
-<script src="three.min.js"></script>
 <script src="main.js"></script>
 </body>
 </html>

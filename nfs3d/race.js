@@ -81,11 +81,14 @@ const Race = {
 
     s.speed = Math.max(0, Math.min(top, s.speed));
 
-    const steer = (input.left ? -1 : 0) + (input.right ? 1 : 0);
-    const latRate = (4 + s.speed * 0.11) * (0.8 + car.handling01 * 0.5);
-    s.lat += steer * latRate * dt;
+    const steerT = (input.left ? -1 : 0) + (input.right ? 1 : 0);
+    s.steer = (s.steer || 0) + (steerT - (s.steer || 0)) * Math.min(1, dt * 9);
+    const grip = 0.75 + car.handling01 * 0.55;
+    const latRate = (3.2 + s.speed * 0.13) * grip;
+    s.lat += s.steer * latRate * dt;
     s.lat = Math.max(-(this.roadHalf + 4), Math.min(this.roadHalf + 4, s.lat));
-    s.steerVis += (steer - s.steerVis) * Math.min(1, dt * 8);
+    if (Math.abs(s.steer) > 0.4 && s.speed > 25) s.speed -= s.speed * 0.12 * dt;  /* cornering scrub */
+    s.steerVis += ((s.steer || 0) - s.steerVis) * Math.min(1, dt * 8);
 
     if (car.nitroUnlocked) {
       if (nitroActive) s.nitro = Math.max(0, s.nitro - 10 * dt);
@@ -229,7 +232,12 @@ const Race = {
     if (this.renderer.setPixelRatio) this.renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, q === 'low' ? 1 : 1.75));
     if (this.renderer.setSize) this.renderer.setSize(canvas.clientWidth || 1280, canvas.clientHeight || 720, false);
     if (this.renderer.shadowMap) this.renderer.shadowMap.enabled = false;   /* perf */
+    if (this.renderer.toneMapping !== undefined && THREE.ACESFilmicToneMapping !== undefined) {
+      this.renderer.toneMapping = THREE.ACESFilmicToneMapping;
+      this.renderer.toneMappingExposure = 1.1;
+    }
     this.scene = new THREE.Scene();
+    if (typeof Viewer !== 'undefined' && Viewer._makeEnv) { const env = Viewer._makeEnv(); if (env) this.scene.environment = env; }
     const sky = 0xc9dbe7;
     if (this.scene.background !== undefined) this.scene.background = new THREE.Color(sky);
     if (THREE.Fog) this.scene.fog = new THREE.Fog(sky, 90, 750);
@@ -487,7 +495,10 @@ const Race = {
     const pm = this.meshes.player;
     if (pm && pm.position && pm.position.set) {
       pm.position.set(pp.x, 0, pp.z);
-      if (pm.rotation) pm.rotation.y = this.headingAt(st.player.dist) + st.player.steerVis * 0.28;
+      if (pm.rotation) {
+        pm.rotation.y = this.headingAt(st.player.dist) + st.player.steerVis * 0.22;
+        pm.rotation.z = -st.player.steerVis * 0.05;   /* body roll */
+      }
     }
     st.ais.forEach((a, i) => {
       const m = this.meshes.ais && this.meshes.ais[i];
@@ -500,8 +511,12 @@ const Race = {
     /* chase camera */
     const cam = this.camera;
     if (cam && cam.position && cam.position.set) {
-      const back = this.trackPoint(Math.max(0, st.player.dist - 9), st.player.lat * 0.6);
-      cam.position.set(back.x, 3.4, back.z);
+      const back = this.trackPoint(Math.max(0, st.player.dist - 9.5), st.player.lat * 0.55);
+      if (!this._camS) this._camS = { x: back.x, z: back.z };
+      const k = 0.12;
+      this._camS.x += (back.x - this._camS.x) * k;
+      this._camS.z += (back.z - this._camS.z) * k;
+      cam.position.set(this._camS.x, 3.3, this._camS.z);
       if (cam.lookAt) cam.lookAt(pp.x, 1.0, pp.z);
     }
   },

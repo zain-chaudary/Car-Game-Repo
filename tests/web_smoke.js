@@ -65,6 +65,8 @@ const key = k => w.dispatchEvent(new w.KeyboardEvent('keydown', { key: k, bubble
 assert(!$('#screen-home').classList.contains('hidden'), 'home screen visible at boot');
 assert($('#btn-continue').disabled === true, 'CONTINUE disabled with no save');
 assert($('#loader-tag') !== null, 'loader has a progress tag');
+assert($('#stage-hints') === null, 'broken hints cluster removed from garage');
+assert(doc.querySelector('script[src^="main.js?v="]') !== null, 'scripts carry cache-busting versions');
 
 click($('#btn-new'));
 assert(!$('#screen-hub').classList.contains('hidden'), 'hub shown after NEW GAME');

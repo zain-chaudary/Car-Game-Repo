@@ -54,9 +54,14 @@ const Viewer = {
       if (THREE.sRGBEncoding !== undefined && this.renderer.outputEncoding !== undefined) {
         this.renderer.outputEncoding = THREE.sRGBEncoding;
       }
+      if (this.renderer.toneMapping !== undefined && THREE.ACESFilmicToneMapping !== undefined) {
+        this.renderer.toneMapping = THREE.ACESFilmicToneMapping;
+        this.renderer.toneMappingExposure = 1.12;
+      }
     } catch (e) { this.ok = false; return false; }
 
     this.scene = new THREE.Scene();
+    this.scene.environment = this._makeEnv();
     this.camera = new THREE.PerspectiveCamera(36, (canvas.clientWidth || 800) / (canvas.clientHeight || 600), 0.1, 120);
     this.pivot = new THREE.Group();
     this.scene.add(this.pivot);
@@ -110,18 +115,42 @@ const Viewer = {
     } catch (e) {}
   },
 
+  /* cheap studio environment map → real reflections on paint/glass */
+  _makeEnv() {
+    try {
+      const mk = (top, bottom) => {
+        const c = document.createElement('canvas');
+        c.width = 16; c.height = 16;
+        const x = c.getContext('2d');
+        const g = x.createLinearGradient(0, 0, 0, 16);
+        g.addColorStop(0, top); g.addColorStop(1, bottom);
+        x.fillStyle = g; x.fillRect(0, 0, 16, 16);
+        return c;
+      };
+      const faces = [
+        mk('#e8eef4', '#aebac6'), mk('#e8eef4', '#aebac6'),
+        mk('#f7fafc', '#e2e9ef'), mk('#565d66', '#31363d'),
+        mk('#efe6d8', '#c0cad4'), mk('#dfe7ee', '#b0bcc8'),
+      ];
+      const tex = new THREE.CubeTexture(faces);
+      tex.needsUpdate = true;
+      return tex;
+    } catch (e) { return null; }
+  },
+
   /* ---------------- realistic studio environment ---------------- */
   _buildLights() {
     const hemi = new THREE.HemisphereLight(0xffffff, 0x9aa0a6, 0.85);
     this.scene.add(hemi);
 
-    const key = new THREE.DirectionalLight(0xfff6ea, 1.05);
+    const key = new THREE.DirectionalLight(0xfff6ea, 1.25);
     key.position.set(5, 8, 4);
     if (key.castShadow !== undefined) {
       key.castShadow = true;
-      if (key.shadow && key.shadow.mapSize) {
-        key.shadow.mapSize.width = this.quality === 'low' ? 512 : 2048;
-        key.shadow.mapSize.height = this.quality === 'low' ? 512 : 2048;
+      if (key.shadow) {
+        if (key.shadow.mapSize) { key.shadow.mapSize.width = this.quality === 'low' ? 512 : 2048; key.shadow.mapSize.height = this.quality === 'low' ? 512 : 2048; }
+        if (key.shadow.camera) { key.shadow.camera.left = -8; key.shadow.camera.right = 8; key.shadow.camera.top = 10; key.shadow.camera.bottom = -10; key.shadow.camera.near = 1; key.shadow.camera.far = 30; }
+        if (key.shadow.bias !== undefined) key.shadow.bias = -0.0004;
       }
     }
     this.scene.add(key);
@@ -134,10 +163,10 @@ const Viewer = {
   },
 
   _buildFloor() {
-    /* polished concrete */
+    /* polished concrete with a sheen */
     const floor = new THREE.Mesh(
       new THREE.CircleGeometry(11, 72),
-      new THREE.MeshStandardMaterial({ color: 0xa7adb4, metalness: 0.05, roughness: 0.9 })
+      new THREE.MeshStandardMaterial({ color: 0x878d94, metalness: 0.3, roughness: 0.42 })
     );
     floor.rotation.x = -Math.PI / 2;
     if (floor.receiveShadow !== undefined) floor.receiveShadow = true;

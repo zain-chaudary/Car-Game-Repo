@@ -17,6 +17,7 @@ const CARS = [
   {
     id: 'bruiser', name: 'BRUISER V8', klass: 'STREET', price: 0,
     model: 'assets/models/bruiser.glb', swatch: '#52708e',
+   flavor: { engine: '5.9L CAST-IRON V8', power: 385, torque: 520, drive: 'RWD', weight: 1610 },
     factoryFinish: true, nitroLocked: true,
     base: { speed: 185, accel: 7.6, handling: 52, nitro: 40, brakes: 50, aero: 18 },
     desc: 'Steel-blue dockyard bruiser with a cast-iron V8. The league hands these to rookies — make it yours first, then make it fast.',
@@ -24,21 +25,10 @@ const CARS = [
   {
     id: 'hyperion', name: 'HYPERION GT', klass: 'GT', price: 0,
     model: 'assets/models/hyperion.glb', swatch: '#6d7c33',
+   flavor: { engine: '3.8L TWIN-TURBO V6', power: 400, torque: 540, drive: 'RWD', weight: 1480 },
     factoryFinish: true, nitroLocked: true,
     base: { speed: 185, accel: 7.6, handling: 54, nitro: 40, brakes: 52, aero: 22 },
     desc: 'Olive-green grand tourer. Same rookie pace as the Bruiser — the difference is what you do with it.',
-  },
-  {
-    id: 'falcon', name: 'FALCON GT', klass: 'STREET', price: 12000,
-    swatch: '#b3202c', silhouette: 'coupe', paint: 0xd8352f, nitroLocked: false,
-    base: { speed: 262, accel: 6.8, handling: 58, nitro: 45, brakes: 55, aero: 30 },
-    desc: 'The street coupe the pros run. Honest power, honest money — tune it and it bites.',
-  },
-  {
-    id: 'vortex', name: 'VORTEX R', klass: 'SUPER', price: 25000,
-    swatch: '#2456b8', silhouette: 'super', paint: 0x1a6bff, nitroLocked: false,
-    base: { speed: 318, accel: 5.2, handling: 76, nitro: 70, brakes: 70, aero: 55 },
-    desc: 'Track-bred wedge with active aero and a screaming V10. The night league fears this one.',
   },
 ];
 const STARTER_IDS = CARS.filter(c => c.price === 0).map(c => c.id);
@@ -120,17 +110,13 @@ const COSMETICS = [
 ];
 const DEFAULT_LOOK = { paint: 'stock', rims: 'stock', glow: 'off', tint: 'none' };
 
-/* ------------------------- RACES ------------------------- */
-const RACES = [
-  { id: 'sunset', name: 'SUNSET STRIP SPRINT', map: 'DOWNTOWN COAST', dist: '2.4 KM', difficulty: 2, reward: 1500, ai: [168, 158] },
-];
 
 /* backdrops fetched only when their screen is first opened */
-const BG_URLS = { 'bg-garage': 'assets/bg_garage.jpg', 'bg-career': 'assets/bg_career.jpg' };
+const BG_URLS = { 'bg-garage': 'assets/bg_garage.jpg' };
 
 const BG_OF = {
   'screen-home': 'bg-home', 'screen-hub': 'bg-home', 'screen-settings': 'bg-home',
-  'screen-exit': 'bg-home', 'screen-garage': 'bg-garage', 'screen-career': 'bg-career', 'screen-race': 'bg-career',
+  'screen-exit': 'bg-home', 'screen-garage': 'bg-garage', 'screen-career': 'bg-home',
 };
 
 /* ------------------------- SAVE ------------------------- */
@@ -254,7 +240,7 @@ let viewMode = false;
 function showScreen(id) {
   document.querySelectorAll('.screen').forEach(s => s.classList.add('hidden'));
   $('#' + id).classList.remove('hidden');
-  $('#topbar').classList.toggle('hidden', id === 'screen-home' || id === 'screen-exit' || id === 'screen-race');
+  $('#topbar').classList.toggle('hidden', id === 'screen-home' || id === 'screen-exit');
   const bgId2 = BG_OF[id] || 'bg-home';
   const bgEl = document.getElementById(bgId2);
   if (bgEl && BG_URLS[bgId2] && !bgEl.dataset.loaded) {
@@ -262,7 +248,6 @@ function showScreen(id) {
     bgEl.dataset.loaded = '1';
   }
   document.querySelectorAll('.bg').forEach(b => b.classList.toggle('active', b.id === bgId2));
-  if (id !== 'screen-race' && typeof Race !== 'undefined' && Race.running) Race.stop(false);
   if (id !== 'screen-garage') { setViewMode(false); if (typeof Viewer !== 'undefined') Viewer.stop(); }
   updateTopbar();
 }
@@ -332,31 +317,44 @@ function renderGarage(swapCar) {
   $('#car-desc').textContent = car.desc;
   $('#car-rating').textContent = perfRating(car);
 
-  /* owned-car tabs; locked cars listed but not drivable */
+  /* garage lists ONLY cars you own — clean chips */
   const list = $('#car-list');
   list.innerHTML = '';
-  CARS.forEach(c => {
-    const has = isOwned(c.id);
-    const card = document.createElement('button');
-    card.className = 'car-card' + (c.id === previewCarId ? ' active' : '') + (has ? '' : ' lockedcard');
-    card.innerHTML =
-      '<div class="cc-art">' + carSilhouette(c.swatch || '#888', false) + '</div>' +
-      (has ? '' : '<span class="lock-ico">' + LOCK_SVG + '</span>') +
-      '<div class="cc-name">' + c.name + '</div>' +
-      '<div class="cc-sub">' +
-      (has
-        ? '<span class="owned">' + (save.selected === c.id ? 'ACTIVE' : 'OWNED') + '</span>'
-        : '<span class="locked">LOCKED · ' + fmtCash(c.price) + '</span>') +
-      '</div>';
-    card.onclick = () => {
-      if (!has) { fx('error'); toast('LOCKED — ' + c.name + ' COSTS ' + fmtCash(c.price)); return; }
+  ownedCars().forEach(c => {
+    const chip = document.createElement('button');
+    chip.className = 'car-chip' + (c.id === previewCarId ? ' active' : '');
+    chip.innerHTML = '<i style="background:' + (c.swatch || '#888') + '"></i>' + c.name +
+      (save.selected === c.id ? '<em>ACTIVE</em>' : '');
+    chip.onclick = () => {
       if (c.id === previewCarId) return;
       previewCarId = c.id;
       fx('whoosh');
       renderGarage(true);
     };
-    list.appendChild(card);
+    list.appendChild(chip);
   });
+
+  /* detailed spec sheet */
+  const fl = car.flavor || {};
+  const hp = (fl.power || 380) + (st.speed - car.base.speed) * 3 + Math.round((car.base.accel - st.accel) * 60);
+  const tq = (fl.torque || 500) + (st.speed - car.base.speed) * 2;
+  const wt = (fl.weight || 1500) - (((save.upgrades[car.id] || {}).weight) || 0) * 35;
+  const sheetRows = [
+    ['ENGINE', fl.engine || '—'],
+    ['POWER', Math.round(hp) + ' hp'],
+    ['TORQUE', Math.round(tq) + ' Nm'],
+    ['DRIVETRAIN', fl.drive || 'RWD'],
+    ['WEIGHT', wt.toLocaleString('en-US') + ' kg'],
+    ['TOP SPEED', st.speed + ' km/h'],
+    ['0–100 KM/H', st.accel.toFixed(2) + ' s'],
+    ['HANDLING', st.handling + ' / 150'],
+    ['BRAKES', st.brakes + ' / 150'],
+    ['NITRO', unlocked ? st.nitro + ' / 150' : 'LOCKED'],
+    ['DOWNFORCE', st.aero + ' / 150'],
+  ];
+  const sheetEl = $('#spec-sheet');
+  if (sheetEl) sheetEl.innerHTML = sheetRows.map(r =>
+    '<div class="ss-row"><span>' + r[0] + '</span><b>' + r[1] + '</b></div>').join('');
 
   /* spec bars */
   const specs = [
@@ -577,61 +575,7 @@ function switchCar(dir) {
 }
 
 /* ------------------------- CAREER ------------------------- */
-function renderCareer() {
-  const list = $('#race-list');
-  list.innerHTML = '';
-  RACES.forEach(r => {
-    const stars = '◆'.repeat(r.difficulty) + '◇'.repeat(3 - r.difficulty);
-    const card = document.createElement('div');
-    card.className = 'race-card';
-    card.innerHTML =
-      '<div><div class="rc-name">' + r.name + '</div>' +
-      '<div class="rc-meta">MAP: ' + r.map + ' · ' + r.dist + ' · <span class="reward">REWARD ' +
-      fmtCash(r.reward) + '</span></div></div>' +
-      '<div style="text-align:right"><div class="stars">' + stars + '</div>' +
-      '<button class="act primary" style="margin-top:10px;flex:0 0 auto;padding:11px 26px">START RACE</button></div>';
-    card.querySelector('button').onclick = () => startRace(r);
-    list.appendChild(card);
-  });
-}
-
-/* ------------------------- RACE LAUNCH (STEP 2) ------------------------- */
-function startRace(r) {
-  const car = carById(save.selected);
-  const st = effStats(car);
-  if (typeof Race === 'undefined' || !Race) {
-    showModal(r.name, 'Race engine unavailable.', [{ label: 'OK', primary: true }]);
-    return;
-  }
-  const carDef = {
-    id: car.id, silhouette: car.silhouette, paint: car.paint,
-    swatchInt: car.swatch ? parseInt(car.swatch.slice(1), 16) : (car.paint || 0x888888),
-    top: st.speed / 3.6,
-    accel: 27.78 / Math.max(2.4, st.accel),
-    brake: 6 + st.brakes * 0.06,
-    handling01: st.handling / 150,
-    nitroUnlocked: nitroUnlocked(car),
-  };
-  fx('whoosh');
-  Race.start(r, carDef, {
-    carDef,
-    onFinished: res => {
-      const reward = res.place === 1 ? r.reward : 500;
-      save.cash += reward;
-      if (res.place === 1) save.wins = (save.wins || 0) + 1;
-      persist();
-      updateTopbar();
-      showScreen('screen-hub');
-      const mm = Math.floor(res.time / 60), ss = (res.time % 60).toFixed(1);
-      showModal(
-        res.place === 1 ? 'RACE WON' : 'RACE COMPLETE',
-        '<b>' + r.name + '</b><br>Finish: <b>P' + res.place + '</b> · Time <b>' + mm + ':' + (ss < 10 ? '0' : '') + ss + '</b><br>Payout: <b>' + fmtCash(reward) + '</b>',
-        [{ label: 'COLLECT CASH', primary: true, cb: () => { fx('buy'); toast('+' + fmtCash(reward) + ' BANKED'); } }]
-      );
-    },
-    onQuit: () => { showScreen('screen-hub'); },
-  });
-}
+function renderCareer() { /* race & map system: awaiting the user's design */ }
 
 /* ------------------------- SETTINGS ------------------------- */
 function renderSettings() {
@@ -803,13 +747,6 @@ function initFX() {
     document.documentElement.style.setProperty('--py', y.toFixed(3));
   });
   preloadAll();
-}
-
-/* hooks for race.js (works in browser scripts AND test evals) */
-if (typeof window !== 'undefined') {
-  window.showScreen = showScreen;
-  window.showModal = showModal;
-  window.getSettings = () => settings;
 }
 
 /* ------------------------- BOOT ------------------------- */

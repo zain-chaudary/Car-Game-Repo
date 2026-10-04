@@ -45,7 +45,7 @@ const Viewer = {
       });
       this.renderer.setSize(canvas.clientWidth || 800, canvas.clientHeight || 600, false);
       if (this.renderer.setPixelRatio) {
-        this.renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, this.quality === 'low' ? 1 : 2));
+        this.renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, this.quality === 'low' ? 1 : 1.5));
       }
       if (this.renderer.shadowMap) {
         this.renderer.shadowMap.enabled = this.quality !== 'low';
@@ -109,7 +109,7 @@ const Viewer = {
     try {
       if (this.renderer.shadowMap) this.renderer.shadowMap.enabled = q !== 'low';
       if (this.renderer.setPixelRatio) {
-        this.renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, q === 'low' ? 1 : 2));
+        this.renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, q === 'low' ? 1 : 1.5));
       }
       this.dirty = true;
     } catch (e) {}
@@ -148,7 +148,7 @@ const Viewer = {
     if (key.castShadow !== undefined) {
       key.castShadow = true;
       if (key.shadow) {
-        if (key.shadow.mapSize) { key.shadow.mapSize.width = this.quality === 'low' ? 512 : 2048; key.shadow.mapSize.height = this.quality === 'low' ? 512 : 2048; }
+        if (key.shadow.mapSize) { key.shadow.mapSize.width = this.quality === 'low' ? 512 : 1024; key.shadow.mapSize.height = this.quality === 'low' ? 512 : 1024; }
         if (key.shadow.camera) { key.shadow.camera.left = -8; key.shadow.camera.right = 8; key.shadow.camera.top = 10; key.shadow.camera.bottom = -10; key.shadow.camera.near = 1; key.shadow.camera.far = 30; }
         if (key.shadow.bias !== undefined) key.shadow.bias = -0.0004;
       }
@@ -165,7 +165,7 @@ const Viewer = {
   _buildFloor() {
     /* polished concrete with a sheen */
     const floor = new THREE.Mesh(
-      new THREE.CircleGeometry(11, 72),
+      new THREE.CircleGeometry(11, 48),
       new THREE.MeshStandardMaterial({ color: 0x878d94, metalness: 0.3, roughness: 0.42 })
     );
     floor.rotation.x = -Math.PI / 2;

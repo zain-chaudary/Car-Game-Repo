@@ -132,26 +132,6 @@ const AudioFX = {
     e.lp.frequency.exponentialRampToValueAtTime(420, t + 1.4);
   },
 
-  countBeep(final) { this._tone(final ? 880 : 440, final ? 0.5 : 0.14, 'sine', 0.22); },
-  win() {
-    [660, 880, 990, 1320].forEach((f, i) => setTimeout(() => this._tone(f, 0.22, 'triangle', 0.16), i * 130));
-    this._noise(0.5, 0.06, 6000, 1);
-  },
-  lose() { this._tone(330, 0.25, 'triangle', 0.14, 220); setTimeout(() => this._tone(247, 0.4, 'triangle', 0.14, 165), 220); },
-
-  /* tie the garage engine loop to road speed */
-  raceSet(ratio) {
-    if (!this._engine || !this.ctx) return;
-    const e = this._engine;
-    const f = 58 + ratio * 150;
-    const t = this._now();
-    [e.o1, e.o2].forEach((o, i) => {
-      o.frequency.cancelScheduledValues(t);
-      o.frequency.setTargetAtTime ? o.frequency.setTargetAtTime(f + i * 0.8, t, 0.08) : (o.frequency.value = f + i * 0.8);
-    });
-    e.lp.frequency.setTargetAtTime ? e.lp.frequency.setTargetAtTime(380 + ratio * 1400, t, 0.1) : (e.lp.frequency.value = 380 + ratio * 1400);
-  },
-
   engineStop() {
     if (!this._engine || !this.ctx) return;
     const e = this._engine, t = this._now();

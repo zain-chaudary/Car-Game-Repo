@@ -6,17 +6,14 @@
 <title>PAYBACK RUSH — 3D Street Racing</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:ital,wght@0,500;0,600;0,700;1,600;1,700&family=Rajdhani:wght@500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="style.css?v=7">
+<link rel="stylesheet" href="style.css?v=8">
 </head>
 <body data-screen="home">
 
 <!-- cinematic background layers (crossfade + parallax) -->
 <div class="bg active" id="bg-home"></div>
 <div class="bg" id="bg-garage"></div>
-<div class="bg" id="bg-career"></div>
 <div id="fx-vignette"></div>
-<div id="fx-leak"></div>
-<div id="fx-grain"></div>
 
 <div id="loader">
   <div class="loader-logo">PAYBACK<span>RUSH</span></div>
@@ -48,8 +45,8 @@
     </nav>
   </div>
   <div class="home-foot">
-    <span>STEP 1 · GARAGE &amp; CAREER</span>
-    <span>v0.4 · REALISM BUILD</span>
+    <span>STEP 1 · GARAGE</span>
+    <span>v0.6 · CLEAN GARAGE BUILD</span>
   </div>
 </section>
 
@@ -63,13 +60,13 @@
     <button class="tile" id="btn-garage">
       <svg class="tile-ico" viewBox="0 0 24 24"><path d="M3 13l2-5h14l2 5v5h-3a2.5 2.5 0 0 1-5 0H11a2.5 2.5 0 0 1-5 0H3v-5zm4-3h10M7 13h.01M17 13h.01" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
       <div class="tile-t">GARAGE</div>
-      <div class="tile-d">3D CARS · PARTS · CUSTOM LOOK</div>
+      <div class="tile-d">3D CARS · FULL SPECS · CUSTOM LOOK</div>
       <span class="tile-arr">›</span>
     </button>
     <button class="tile" id="btn-career">
       <svg class="tile-ico" viewBox="0 0 24 24"><path d="M5 21V4m0 0h13l-2.5 4L18 12H5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
       <div class="tile-t">CAREER</div>
-      <div class="tile-d">RACES · MAPS · REWARDS</div>
+      <div class="tile-d">RACES &amp; MAPS · YOUR DESIGN NEXT</div>
       <span class="tile-arr">›</span>
     </button>
   </div>
@@ -79,34 +76,34 @@
   </div>
 </section>
 
-<!-- ============ GARAGE ============ -->
+<!-- ============ GARAGE (v0.6 minimal) ============ -->
 <section id="screen-garage" class="screen garage hidden">
-  <div class="g-stage" id="g-stage">
-    <canvas id="car-canvas"></canvas>
-    <div id="car-fallback" class="car-fallback hidden"></div>
+  <canvas id="car-canvas"></canvas>
+  <div id="car-fallback" class="car-fallback hidden"></div>
 
-    <div class="stage-hud">
-      <div class="car-plate">
-        <h3 id="car-name">—</h3>
-        <div id="car-class" class="badge">—</div>
-        <div class="car-rating"><span id="car-rating">0</span><small>PERF RATING</small></div>
-      </div>
-    </div>
+  <button class="linkbtn g-back" id="btn-garage-back">‹ BACK TO HUB</button>
 
-    <button class="view3d-btn" id="btn-view3d"><b>1</b> VIEW &amp; ROTATE 3D</button>
+  <header class="g-head">
+    <h2 id="car-name">—</h2>
+    <span id="car-class" class="badge">—</span>
+    <span class="g-rating"><b id="car-rating">0</b><small>PERF</small></span>
+  </header>
 
-    <button class="stage-nav left" id="btn-car-prev" title="previous car">‹</button>
-    <button class="stage-nav right" id="btn-car-next" title="next car">›</button>
-  </div>
+  <button class="view3d-btn" id="btn-view3d"><b>1</b> VIEW &amp; ROTATE 3D</button>
+  <button class="stage-nav left" id="btn-car-prev" title="previous car">‹</button>
+  <button class="stage-nav right" id="btn-car-next" title="next car">›</button>
 
-  <aside class="g-right" id="g-right">
+  <div id="car-list" class="g-cars"></div>
+
+  <aside class="g-panel" id="g-right">
     <div class="panel-tabs">
       <button class="ptab on" id="tab-specs">SPECS</button>
-      <button class="ptab" id="tab-custom">CUSTOMIZATION</button>
+      <button class="ptab" id="tab-custom">CUSTOMIZE</button>
     </div>
     <div class="panel-body">
       <div id="panel-specs">
         <p id="car-desc" class="desc"></p>
+        <div id="spec-sheet" class="spec-sheet"></div>
         <div id="spec-bars"></div>
         <button class="unlock-nitro hidden" id="btn-unlock-nitro">UNLOCK NITROUS</button>
       </div>
@@ -118,40 +115,22 @@
       </div>
     </div>
     <div class="actions">
-      <button class="act primary" id="btn-select">SELECT</button>
-      <button class="act" id="btn-buy">BUY</button>
+      <button class="act primary" id="btn-select">SET AS ACTIVE</button>
+      <button class="act hidden" id="btn-buy">BUY</button>
     </div>
   </aside>
-
-  <div id="car-list" class="car-tabs"></div>
-  <button class="linkbtn g-back" id="btn-garage-back">‹ BACK TO HUB</button>
 </section>
 
-<!-- ============ RACE (STEP 2) ============ -->
-<section id="screen-race" class="screen race hidden">
-  <canvas id="race-canvas"></canvas>
-  <div class="race-hud">
-    <div class="rh-left">
-      <div class="rh-pos"><b id="race-pos">1</b><span>/3</span></div>
-      <div class="rh-time" id="race-time">0:00.0</div>
-    </div>
-    <div class="rh-right">
-      <div class="rh-speed"><b id="race-speed">0</b><span> KM/H</span></div>
-      <div class="rh-nitro"><i id="race-nitro"></i></div>
-    </div>
-  </div>
-  <div class="rh-progress"><i id="race-progress"></i></div>
-  <div id="countdown" class="countdown hidden">3</div>
-  <div id="race-banner" class="race-banner hidden"></div>
-</section>
-
-<!-- ============ CAREER ============ -->
+<!-- ============ CAREER (placeholder — user will design races & maps) ============ -->
 <section id="screen-career" class="screen hidden">
   <div class="hub-head">
     <div class="eyebrow"><i></i>CAREER MODE</div>
     <h2 class="h2">PROVE <em>YOURSELF</em></h2>
   </div>
-  <div id="race-list"></div>
+  <div class="panel settings career-note">
+    <div class="set-row"><span>RACE &amp; MAP SYSTEM</span><span class="set-val">AWAITING YOUR DESIGN</span></div>
+    <p class="exit-note">Nothing gets added here until you say exactly<br>how races and maps should work.</p>
+  </div>
   <button class="linkbtn" id="btn-career-back">‹ BACK TO HUB</button>
 </section>
 
@@ -205,11 +184,10 @@
 </div>
 <div id="toast" class="hidden"></div>
 
-<script defer src="three.min.js?v=7"></script>
-<script defer src="GLTFLoader.js?v=7"></script>
-<script defer src="audio.js?v=7"></script>
-<script defer src="viewer.js?v=7"></script>
-<script defer src="race.js?v=7"></script>
-<script defer src="main.js?v=7"></script>
+<script defer src="three.min.js?v=8"></script>
+<script defer src="GLTFLoader.js?v=8"></script>
+<script defer src="audio.js?v=8"></script>
+<script defer src="viewer.js?v=8"></script>
+<script defer src="main.js?v=8"></script>
 </body>
 </html>

@@ -53,7 +53,6 @@ const assert = (cond, msg) => {
 
 w.eval(read('audio.js'));
 w.eval(read('viewer.js'));
-w.eval(read('race.js'));
 w.eval(read('main.js'));
 
 const doc = w.document;
@@ -85,24 +84,24 @@ assert($('#btn-unlock-nitro').disabled === false, 'unlock affordable at $5,000')
 assert($('#btn-unlock-nitro').textContent.includes('$5,000'), 'unlock price is $5,000');
 assert(Number($('#car-rating').textContent) > 0, 'perf rating computed');
 
-const cards = doc.querySelectorAll('.car-card');
-assert(cards.length === 4, 'four cars listed in garage');
-assert(doc.querySelectorAll('.car-card img').length === 0, 'zero image downloads in car tabs (inline SVG)');
-assert(doc.querySelectorAll('.car-card .cc-art svg').length === 4, 'SVG silhouettes rendered instead');
-assert(cards[2].textContent.includes('LOCKED') && cards[3].textContent.includes('LOCKED'), 'falcon & vortex locked');
-assert(cards[0].textContent.includes('ACTIVE') && cards[1].textContent.includes('OWNED'), 'both starters owned');
+const chips = doc.querySelectorAll('.car-chip');
+assert(chips.length === 2, 'garage lists ONLY the two owned GLB cars');
+assert(doc.querySelector('.car-card') === null, 'fake procedural cars removed from garage');
+assert($('#spec-sheet').querySelectorAll('.ss-row').length === 11, 'detailed spec sheet renders 11 rows');
+assert($('#spec-sheet').textContent.includes('5.9L CAST-IRON V8'), 'bruiser engine detail in spec sheet');
+assert($('#spec-sheet').textContent.includes('TORQUE'), 'torque detail in spec sheet');
+assert($('#screen-race') === null, 'race screen removed from the app');
+assert(doc.querySelector('script[src*="race.js"]') === null, 'race.js no longer loaded');
 
 /* owned-only switching */
 key('ArrowRight');
 assert($('#car-name').textContent === 'HYPERION GT', 'RIGHT arrow switches to HYPERION GT');
 key('ArrowLeft');
 assert($('#car-name').textContent === 'BRUISER V8', 'LEFT arrow switches back to BRUISER V8');
-click(cards[2]);                            /* locked falcon */
-assert($('#car-name').textContent === 'BRUISER V8', 'locked car cannot be previewed');
 click($('#btn-car-next'));
 assert($('#car-name').textContent === 'HYPERION GT', 'next-arrow switches between owned cars');
-click(cards[0]);
-assert($('#car-name').textContent === 'BRUISER V8', 'owned tab click switches car');
+click(chips[0]);
+assert($('#car-name').textContent === 'BRUISER V8', 'owned chip click switches car');
 
 /* 3D view mode */
 key('1');
@@ -141,22 +140,8 @@ assert(!$('#screen-hub').classList.contains('hidden'), 'back at hub');
 
 click($('#btn-career'));
 assert(!$('#screen-career').classList.contains('hidden'), 'career shown');
-const raceBtn = doc.querySelector('.race-card button');
-assert(raceBtn.textContent === 'START RACE', 'race card has START RACE');
-assert(doc.querySelector('.race-card').textContent.includes('$1,500'), 'race reward $1,500 shown');
-click(raceBtn);
-assert(!$('#screen-race').classList.contains('hidden'), 'START RACE launches the 3D race screen');
-assert(w.Race.running === true, 'race loop is running');
-assert(w.Race.data && w.Race.data.len > 2200, 'Downtown Coast track built (~2.4 km)');
-assert(!$('#countdown').classList.contains('hidden'), 'countdown shown at race start');
-assert(w.Race.states.ais.length === 2, 'two AI opponents on the grid');
-
-/* pause + quit */
-key('Escape');
-assert(!$('#modal').classList.contains('hidden'), 'Esc pauses the race');
-click(doc.querySelectorAll('#modal-actions .act')[1]);   /* EXIT RACE */
-assert(w.Race.running === false, 'race stopped on exit');
-assert(!$('#screen-hub').classList.contains('hidden'), 'exit returns to hub');
+assert($('#screen-career').textContent.includes('AWAITING YOUR DESIGN'), 'career is a clean placeholder until you design the race & map system');
+click($('#btn-career-back'));
 
 click($('#btn-career-back'));
 click($('#btn-hub-settings'));

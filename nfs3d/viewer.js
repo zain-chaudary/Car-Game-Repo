@@ -140,7 +140,7 @@ const Viewer = {
 
   /* ---------------- realistic studio environment ---------------- */
   _buildLights() {
-    const hemi = new THREE.HemisphereLight(0xffffff, 0x9aa0a6, 0.85);
+    const hemi = new THREE.HemisphereLight(0xffffff, 0x24272b, 0.8);
     this.scene.add(hemi);
 
     const key = new THREE.DirectionalLight(0xfff6ea, 1.25);
@@ -166,7 +166,7 @@ const Viewer = {
     /* polished concrete with a sheen */
     const floor = new THREE.Mesh(
       new THREE.CircleGeometry(11, 48),
-      new THREE.MeshStandardMaterial({ color: 0x878d94, metalness: 0.3, roughness: 0.42 })
+      new THREE.MeshStandardMaterial({ color: 0x24272b, metalness: 0.5, roughness: 0.32 })
     );
     floor.rotation.x = -Math.PI / 2;
     if (floor.receiveShadow !== undefined) floor.receiveShadow = true;
@@ -175,7 +175,7 @@ const Viewer = {
     /* subtle painted service circle */
     const ring = new THREE.Mesh(
       new THREE.RingGeometry(5.1, 5.24, 96),
-      new THREE.MeshBasicMaterial({ color: 0x878d94, side: THREE.DoubleSide })
+      new THREE.MeshBasicMaterial({ color: 0x4a5058, side: THREE.DoubleSide })
     );
     ring.rotation.x = -Math.PI / 2;
     ring.position.y = 0.012;

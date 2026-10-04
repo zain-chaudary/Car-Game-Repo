@@ -17,7 +17,7 @@ const CARS = [
   {
     id: 'bruiser', name: 'BRUISER V8', klass: 'STREET', price: 0,
     model: 'assets/models/bruiser.glb', swatch: '#52708e',
-   flavor: { engine: '5.9L CAST-IRON V8', power: 385, torque: 520, drive: 'RWD', weight: 1610 },
+   flavor: { engine: '5.9L CAST-IRON V8', power: 385, torque: 520, drive: 'RWD', weight: 1610, tyres: '245/45 R17 · SPORT', fuel: 'PETROL · 70 L' },
     factoryFinish: true, nitroLocked: true,
     base: { speed: 185, accel: 7.6, handling: 52, nitro: 40, brakes: 50, aero: 18 },
     desc: 'Steel-blue dockyard bruiser with a cast-iron V8. The league hands these to rookies — make it yours first, then make it fast.',
@@ -25,7 +25,7 @@ const CARS = [
   {
     id: 'hyperion', name: 'HYPERION GT', klass: 'GT', price: 0,
     model: 'assets/models/hyperion.glb', swatch: '#6d7c33',
-   flavor: { engine: '3.8L TWIN-TURBO V6', power: 400, torque: 540, drive: 'RWD', weight: 1480 },
+   flavor: { engine: '3.8L TWIN-TURBO V6', power: 400, torque: 540, drive: 'RWD', weight: 1480, tyres: '255/35 R18 · SPORT', fuel: 'PETROL · 65 L' },
     factoryFinish: true, nitroLocked: true,
     base: { speed: 185, accel: 7.6, handling: 54, nitro: 40, brakes: 52, aero: 22 },
     desc: 'Olive-green grand tourer. Same rookie pace as the Bruiser — the difference is what you do with it.',
@@ -296,129 +296,143 @@ function ensureViewer() {
 function currentLook() { return equippedLook(previewCarId); }
 
 function renderGarage(swapCar) {
-  const car = carById(previewCarId);
-  const owned = isOwned(car.id);
-  const unlocked = nitroUnlocked(car);
-  const st = effStats(car);
+  /* DOM WRITES FIRST — a 3D-side error can never blank the UI again */
+  try {
+    const car = carById(previewCarId);
+    const owned = isOwned(car.id);
+    const unlocked = nitroUnlocked(car);
+    const st = effStats(car);
 
-  if (typeof Viewer !== 'undefined' && Viewer.ok) {
-    if (swapCar || Viewer.currentId !== car.id) Viewer.showCar(car, currentLook());
-    else Viewer.applyLook(currentLook());
-  } else {
-    const fb = $('#car-fallback');
-    if (fb && fb.dataset.car !== car.id) {
-      fb.dataset.car = car.id;
-      fb.innerHTML = carSilhouette(car.swatch || '#888', true);
+    $('#car-name').textContent = car.name;
+    $('#car-class').textContent = car.klass + ' CLASS';
+    $('#car-desc').textContent = car.desc;
+    $('#car-rating').textContent = perfRating(car);
+
+    /* garage lists ONLY cars you own — clean chips */
+    const list = $('#car-list');
+    list.innerHTML = '';
+    ownedCars().forEach(c => {
+      const chip = document.createElement('button');
+      chip.className = 'car-chip' + (c.id === previewCarId ? ' active' : '');
+      chip.innerHTML = '<i style="background:' + (c.swatch || '#888') + '"></i>' + c.name +
+        (save.selected === c.id ? '<em>ACTIVE</em>' : '');
+      chip.onclick = () => {
+        if (c.id === previewCarId) return;
+        previewCarId = c.id;
+        fx('whoosh');
+        renderGarage(true);
+      };
+      list.appendChild(chip);
+    });
+
+    /* detailed spec sheet (live values incl. upgrades) */
+    const fl = car.flavor || {};
+    const hp = (fl.power || 380) + (st.speed - car.base.speed) * 3 + Math.round((car.base.accel - st.accel) * 60);
+    const tq = (fl.torque || 500) + (st.speed - car.base.speed) * 2;
+    const wt = (fl.weight || 1500) - (((save.upgrades[car.id] || {}).weight) || 0) * 35;
+    const sheetRows = [
+      ['ENGINE', fl.engine || '—'],
+      ['POWER', Math.round(hp) + ' hp'],
+      ['TORQUE', Math.round(tq) + ' Nm'],
+      ['DRIVETRAIN', fl.drive || 'RWD'],
+      ['WEIGHT', wt.toLocaleString('en-US') + ' kg'],
+      ['TYRES', fl.tyres || 'SPORT'],
+      ['TOP SPEED', st.speed + ' km/h'],
+      ['0–100 KM/H', st.accel.toFixed(2) + ' s'],
+      ['HANDLING', st.handling + ' / 150'],
+      ['BRAKES', st.brakes + ' / 150'],
+      ['NITRO', unlocked ? st.nitro + ' / 150' : 'LOCKED'],
+      ['DOWNFORCE', st.aero + ' / 150'],
+      ['FUEL', fl.fuel || 'PETROL'],
+    ];
+    const sheetEl = $('#spec-sheet');
+    if (sheetEl) sheetEl.innerHTML = sheetRows.map(r =>
+      '<div class="ss-row"><span>' + r[0] + '</span><b>' + r[1] + '</b></div>').join('');
+
+    /* spec bars */
+    const specs = [
+      ['TOP SPEED', st.speed + ' km/h', (st.speed - 160) / 260 * 100],
+      ['0–100 KM/H', st.accel.toFixed(1) + ' s', (9 - st.accel) / 6.5 * 100],
+      ['GRIP', st.handling + ' / 150', st.handling / 1.5],
+      ['NITRO', unlocked ? st.nitro + ' / 150' : 'LOCKED', unlocked ? st.nitro / 1.5 : 0],
+      ['BRAKES', st.brakes + ' / 150', st.brakes / 1.5],
+      ['DOWNFORCE', st.aero + ' / 150', st.aero / 1.5],
+    ];
+    $('#spec-bars').innerHTML = specs.map(sp =>
+      '<div class="spec"><div class="row"><span>' + sp[0] + '</span><b>' + sp[1] + '</b></div>' +
+      '<div class="bar"><div class="fill" style="width:' + Math.max(2, Math.min(100, sp[2])) + '%"></div></div></div>'
+    ).join('');
+
+    /* nitrous unlock */
+    const unlockBtn = $('#btn-unlock-nitro');
+    if (car.nitroLocked && !unlocked) {
+      unlockBtn.classList.remove('hidden');
+      unlockBtn.innerHTML = 'UNLOCK NITROUS · ' + fmtCash(NITRO_UNLOCK_COST);
+      unlockBtn.disabled = !owned || save.cash < NITRO_UNLOCK_COST;
+      unlockBtn.onclick = () => {
+        if (save.cash < NITRO_UNLOCK_COST) { fx('error'); toast('NOT ENOUGH CASH'); return; }
+        save.cash -= NITRO_UNLOCK_COST;
+        save.nitroUnlocked = save.nitroUnlocked || {};
+        save.nitroUnlocked[car.id] = true;
+        persist(); fx('buy'); fx('rev', 1);
+        toast('NITROUS UNLOCKED FOR ' + car.name);
+        renderGarage(false);
+      };
+    } else {
+      unlockBtn.classList.add('hidden');
     }
+
+    renderUpgrades(car, owned, unlocked);
+    renderCosmetics(car, owned);
+
+    /* select / buy */
+    const sel = $('#btn-select'), buy = $('#btn-buy');
+    if (owned) {
+      buy.classList.add('hidden');
+      sel.classList.remove('hidden');
+      sel.textContent = save.selected === car.id ? 'SELECTED ✓' : 'SET AS ACTIVE';
+      sel.disabled = save.selected === car.id;
+      sel.onclick = () => {
+        save.selected = car.id; persist();
+        fx('select'); toast(car.name + ' IS NOW YOUR ACTIVE CAR');
+        renderGarage(false);
+      };
+    } else {
+      sel.classList.add('hidden');
+      buy.classList.remove('hidden');
+      buy.textContent = 'BUY · ' + fmtCash(car.price);
+      buy.disabled = save.cash < car.price;
+      buy.onclick = () => {
+        save.cash -= car.price;
+        save.owned.push(car.id);
+        save.upgrades[car.id] = save.upgrades[car.id] || {};
+        save.equipped[car.id] = Object.assign({}, DEFAULT_LOOK);
+        persist(); fx('buy'); toast(car.name + ' PURCHASED!');
+        renderGarage(false);
+      };
+    }
+    updateTopbar();
+  } catch (err) {
+    if (typeof console !== 'undefined' && console.error) console.error('renderGarage:', err);
+    toast('GARAGE ERROR — ' + (err && err.message ? err.message : err));
   }
 
-  $('#car-name').textContent = car.name;
-  $('#car-class').textContent = car.klass + ' CLASS';
-  $('#car-desc').textContent = car.desc;
-  $('#car-rating').textContent = perfRating(car);
-
-  /* garage lists ONLY cars you own — clean chips */
-  const list = $('#car-list');
-  list.innerHTML = '';
-  ownedCars().forEach(c => {
-    const chip = document.createElement('button');
-    chip.className = 'car-chip' + (c.id === previewCarId ? ' active' : '');
-    chip.innerHTML = '<i style="background:' + (c.swatch || '#888') + '"></i>' + c.name +
-      (save.selected === c.id ? '<em>ACTIVE</em>' : '');
-    chip.onclick = () => {
-      if (c.id === previewCarId) return;
-      previewCarId = c.id;
-      fx('whoosh');
-      renderGarage(true);
-    };
-    list.appendChild(chip);
-  });
-
-  /* detailed spec sheet */
-  const fl = car.flavor || {};
-  const hp = (fl.power || 380) + (st.speed - car.base.speed) * 3 + Math.round((car.base.accel - st.accel) * 60);
-  const tq = (fl.torque || 500) + (st.speed - car.base.speed) * 2;
-  const wt = (fl.weight || 1500) - (((save.upgrades[car.id] || {}).weight) || 0) * 35;
-  const sheetRows = [
-    ['ENGINE', fl.engine || '—'],
-    ['POWER', Math.round(hp) + ' hp'],
-    ['TORQUE', Math.round(tq) + ' Nm'],
-    ['DRIVETRAIN', fl.drive || 'RWD'],
-    ['WEIGHT', wt.toLocaleString('en-US') + ' kg'],
-    ['TOP SPEED', st.speed + ' km/h'],
-    ['0–100 KM/H', st.accel.toFixed(2) + ' s'],
-    ['HANDLING', st.handling + ' / 150'],
-    ['BRAKES', st.brakes + ' / 150'],
-    ['NITRO', unlocked ? st.nitro + ' / 150' : 'LOCKED'],
-    ['DOWNFORCE', st.aero + ' / 150'],
-  ];
-  const sheetEl = $('#spec-sheet');
-  if (sheetEl) sheetEl.innerHTML = sheetRows.map(r =>
-    '<div class="ss-row"><span>' + r[0] + '</span><b>' + r[1] + '</b></div>').join('');
-
-  /* spec bars */
-  const specs = [
-    ['TOP SPEED', st.speed + ' km/h', (st.speed - 160) / 260 * 100],
-    ['0–100 KM/H', st.accel.toFixed(1) + ' s', (9 - st.accel) / 6.5 * 100],
-    ['GRIP', st.handling + ' / 150', st.handling / 1.5],
-    ['NITRO', unlocked ? st.nitro + ' / 150' : 'LOCKED', unlocked ? st.nitro / 1.5 : 0],
-    ['BRAKES', st.brakes + ' / 150', st.brakes / 1.5],
-    ['DOWNFORCE', st.aero + ' / 150', st.aero / 1.5],
-  ];
-  $('#spec-bars').innerHTML = specs.map(s =>
-    '<div class="spec"><div class="row"><span>' + s[0] + '</span><b>' + s[1] + '</b></div>' +
-    '<div class="bar"><div class="fill" style="width:' + Math.max(2, Math.min(100, s[2])) + '%"></div></div></div>'
-  ).join('');
-
-  /* nitrous unlock */
-  const unlockBtn = $('#btn-unlock-nitro');
-  if (car.nitroLocked && !unlocked) {
-    unlockBtn.classList.remove('hidden');
-    unlockBtn.innerHTML = 'UNLOCK NITROUS · ' + fmtCash(NITRO_UNLOCK_COST);
-    unlockBtn.disabled = !owned || save.cash < NITRO_UNLOCK_COST;
-    unlockBtn.onclick = () => {
-      if (save.cash < NITRO_UNLOCK_COST) { fx('error'); toast('NOT ENOUGH CASH'); return; }
-      save.cash -= NITRO_UNLOCK_COST;
-      save.nitroUnlocked = save.nitroUnlocked || {};
-      save.nitroUnlocked[car.id] = true;
-      persist(); fx('buy'); fx('rev', 1);
-      toast('NITROUS UNLOCKED FOR ' + car.name);
-      renderGarage(false);
-    };
-  } else {
-    unlockBtn.classList.add('hidden');
+  /* 3D LAST and isolated — a throw here can never blank the panels */
+  try {
+    const car = carById(previewCarId);
+    if (typeof Viewer !== 'undefined' && Viewer.ok) {
+      if (swapCar || Viewer.currentId !== car.id) Viewer.showCar(car, currentLook());
+      else Viewer.applyLook(currentLook());
+    } else {
+      const fb = $('#car-fallback');
+      if (fb && fb.dataset.car !== car.id) {
+        fb.dataset.car = car.id;
+        fb.innerHTML = carSilhouette(car.swatch || '#888', true);
+      }
+    }
+  } catch (err) {
+    if (typeof console !== 'undefined' && console.error) console.error('viewer:', err);
   }
-
-  renderUpgrades(car, owned, unlocked);
-  renderCosmetics(car, owned);
-
-  /* select / buy */
-  const sel = $('#btn-select'), buy = $('#btn-buy');
-  if (owned) {
-    buy.classList.add('hidden');
-    sel.classList.remove('hidden');
-    sel.textContent = save.selected === car.id ? 'SELECTED ✓' : 'SET AS ACTIVE';
-    sel.disabled = save.selected === car.id;
-    sel.onclick = () => {
-      save.selected = car.id; persist();
-      fx('select'); toast(car.name + ' IS NOW YOUR ACTIVE CAR');
-      renderGarage(false);
-    };
-  } else {
-    sel.classList.add('hidden');
-    buy.classList.remove('hidden');
-    buy.textContent = 'BUY · ' + fmtCash(car.price);
-    buy.disabled = save.cash < car.price;
-    buy.onclick = () => {
-      save.cash -= car.price;
-      save.owned.push(car.id);
-      save.upgrades[car.id] = save.upgrades[car.id] || {};
-      save.equipped[car.id] = Object.assign({}, DEFAULT_LOOK);
-      persist(); fx('buy'); toast(car.name + ' PURCHASED!');
-      renderGarage(false);
-    };
-  }
-  updateTopbar();
 }
 
 function carSilhouette(color, big) {

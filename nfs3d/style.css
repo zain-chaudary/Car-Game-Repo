@@ -183,7 +183,10 @@ button { font-family: inherit; }
 .hub-links { display: flex; gap: 12px; }
 
 /* ---------- garage v0.6 — minimal floating layout ---------- */
-.screen.garage { padding: 0; animation: none; display: block; }
+.screen.garage {
+  padding: 0; animation: none; display: block;
+  background: radial-gradient(1200px 700px at 50% 18%, #2e3237, #17191c 72%);
+}
 #car-canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; cursor: grab; touch-action: none; }
 #car-canvas:active { cursor: grabbing; }
 .car-fallback { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; }
@@ -245,6 +248,62 @@ button { font-family: inherit; }
 .car-chip em { font-style: normal; font-size: 8px; letter-spacing: 2px; color: var(--ok); border: 1px solid rgba(34, 118, 79, .4); padding: 2px 5px; }
 .car-chip:hover { color: var(--ink); border-color: rgba(26, 30, 36, .35); }
 .car-chip.active { color: var(--ink); border-color: var(--accent); background: #fff; box-shadow: 0 6px 18px rgba(217, 72, 15, .18); }
+
+/* ---------- dark showroom theme (no more white-on-white) ---------- */
+.g-back { background: rgba(22, 24, 28, .85); color: #cfd5dc; border-color: rgba(255, 255, 255, .12); }
+.g-back:hover { color: #ffb27a; border-color: rgba(217, 72, 15, .5); }
+.g-head { background: rgba(22, 24, 28, .9); border-color: rgba(255, 255, 255, .1); }
+#car-name { color: #f4f6f8; }
+.badge { color: #9fb2c4; border-color: rgba(159, 178, 196, .4); }
+.g-rating { border-left-color: rgba(255, 255, 255, .12); }
+.g-rating b { color: #ffb27a; }
+.g-rating small { color: #98a1ac; }
+.stage-nav { background: rgba(22, 24, 28, .8); color: #e8eaee; border-color: rgba(255, 255, 255, .12); }
+.stage-nav:hover { background: var(--accent); color: #fff; }
+.car-chip { background: rgba(22, 24, 28, .85); color: #9aa2ad; border-color: rgba(255, 255, 255, .12); }
+.car-chip:hover { color: #e8eaee; border-color: rgba(255, 255, 255, .3); }
+.car-chip.active { color: #fff; border-color: var(--accent); background: rgba(217, 72, 15, .18); box-shadow: 0 6px 18px rgba(0, 0, 0, .4); }
+.g-panel { background: rgba(22, 24, 28, .93); border-color: rgba(255, 255, 255, .08); box-shadow: 0 14px 40px rgba(0, 0, 0, .5); }
+.panel-tabs { border-bottom-color: rgba(255, 255, 255, .08); }
+.ptab { color: #9aa2ad; }
+.ptab:hover { color: #e8eaee; }
+.ptab.on { color: #ffb27a; border-bottom-color: var(--accent); background: rgba(217, 72, 15, .12); }
+.desc { color: #b6bdc7; }
+.spec-sheet { border-top-color: rgba(255, 255, 255, .1); }
+.ss-row { border-bottom-color: rgba(255, 255, 255, .07); }
+.ss-row span { color: #98a1ac; }
+.ss-row b { color: #f2f4f7; }
+.spec .row { color: #98a1ac; }
+.spec .row b { color: #f2f4f7; }
+.bar { background: rgba(255, 255, 255, .12); }
+.bar::after { background: repeating-linear-gradient(90deg, transparent 0 18px, rgba(22, 24, 28, .55) 18px 19px); }
+.unlock-nitro { background: #26292e; color: #ffb27a; }
+.unlock-nitro:hover:not(:disabled) { background: var(--accent); color: #fff; }
+.sub-title { color: #ffb27a; }
+.sub-title::after { background: linear-gradient(90deg, rgba(217, 72, 15, .5), transparent); }
+.up-row { background: rgba(255, 255, 255, .04); border-color: rgba(255, 255, 255, .1); }
+.up-row:hover { border-color: rgba(217, 72, 15, .5); background: rgba(255, 255, 255, .07); }
+.up-row.tier4 { background: rgba(161, 39, 52, .12); }
+.up-info .n { color: #e8eaee; }
+.up-info .n em { color: #98a1ac; }
+.up-info .d { color: #98a1ac; }
+.pip { background: rgba(255, 255, 255, .14); }
+.buy-up { background: rgba(217, 72, 15, .15); color: #ffb27a; border-color: rgba(217, 72, 15, .6); }
+.buy-up:hover:not(:disabled) { background: var(--accent); color: #fff; }
+.buy-up.max { border-color: rgba(34, 118, 79, .6); color: #6fce9f; background: rgba(34, 118, 79, .12); }
+.factory-note { color: #9fb2c4; background: rgba(70, 97, 124, .15); border-color: rgba(70, 97, 124, .5); }
+.cos-name { color: #98a1ac; }
+.cos-chip { background: #26292e; border-color: rgba(255, 255, 255, .12); color: #dfe3e8; }
+.cos-chip:hover { border-color: rgba(255, 255, 255, .35); }
+.cos-chip .cp { color: #ffb27a; }
+.cos-chip.on { border-color: var(--accent); background: rgba(217, 72, 15, .15); }
+.cos-chip.on .cp { color: #6fce9f; }
+.cos-chip.locked .cn { color: #98a1ac; }
+.actions { background: rgba(255, 255, 255, .04); border-top-color: rgba(255, 255, 255, .08); }
+.act { background: #26292e; border-color: rgba(255, 255, 255, .12); color: #e8eaee; }
+.act:hover:not(:disabled) { background: rgba(255, 255, 255, .1); }
+.act.primary { background: var(--accent); border: 0; color: #fff; }
+.act.primary:hover:not(:disabled) { background: var(--accent-deep); }
 
 /* ---------- garage panel ---------- */
 .g-panel {

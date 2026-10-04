@@ -87,7 +87,7 @@ assert(Number($('#car-rating').textContent) > 0, 'perf rating computed');
 const chips = doc.querySelectorAll('.car-chip');
 assert(chips.length === 2, 'garage lists ONLY the two owned GLB cars');
 assert(doc.querySelector('.car-card') === null, 'fake procedural cars removed from garage');
-assert($('#spec-sheet').querySelectorAll('.ss-row').length === 11, 'detailed spec sheet renders 11 rows');
+assert($('#spec-sheet').querySelectorAll('.ss-row').length === 13, 'detailed spec sheet renders 13 rows');
 assert($('#spec-sheet').textContent.includes('5.9L CAST-IRON V8'), 'bruiser engine detail in spec sheet');
 assert($('#spec-sheet').textContent.includes('TORQUE'), 'torque detail in spec sheet');
 assert($('#screen-race') === null, 'race screen removed from the app');

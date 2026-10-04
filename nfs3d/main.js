@@ -116,7 +116,7 @@ const BG_URLS = { 'bg-garage': 'assets/bg_garage.jpg' };
 
 const BG_OF = {
   'screen-home': 'bg-home', 'screen-hub': 'bg-home', 'screen-settings': 'bg-home',
-  'screen-exit': 'bg-home', 'screen-garage': 'bg-garage', 'screen-career': 'bg-home',
+  'screen-exit': 'bg-home', 'screen-career': 'bg-home',
 };
 
 /* ------------------------- SAVE ------------------------- */

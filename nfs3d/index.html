@@ -1,0 +1,218 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<title>PAYBACK RUSH — 3D Street Racing</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:ital,wght@0,500;0,600;0,700;1,600;1,700&family=Rajdhani:wght@500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body data-screen="home">
+
+<!-- cinematic background layers (crossfade + parallax) -->
+<div class="bg active" id="bg-home"></div>
+<div class="bg" id="bg-garage"></div>
+<div class="bg" id="bg-career"></div>
+<div id="fx-vignette"></div>
+<div id="fx-leak"></div>
+<div id="fx-grain"></div>
+
+<div id="loader">
+  <div class="loader-logo">PAYBACK<span>RUSH</span></div>
+  <div class="loader-bar"><i></i></div>
+  <div class="loader-tag" id="loader-tag">LOADING…</div>
+</div>
+
+<header id="topbar" class="hidden">
+  <div class="tb-logo">PAYBACK<span>RUSH</span></div>
+  <div class="tb-right">
+    <div class="chip cash">
+      <svg viewBox="0 0 24 24"><path d="M12 2v20M17 6.5c0-2-2.2-3-5-3s-5 1.2-5 3.2c0 4.6 10 2.6 10 7.3 0 2.2-2.2 3.5-5 3.5s-5-1.2-5-3.2" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+      <b id="cash">$5,000</b>
+    </div>
+  </div>
+</header>
+
+<!-- ============ HOME ============ -->
+<section id="screen-home" class="screen">
+  <div class="home-left">
+    <div class="eyebrow"><i></i>ARUZA CITY · STREET LEAGUE</div>
+    <h1 class="logo">PAYBACK<span>RUSH</span></h1>
+    <div class="tagline">OWN THE ROAD — EARN YOUR RESPECT</div>
+    <nav class="menu">
+      <button class="mbtn" id="btn-new"><span class="num">01</span><span class="lbl">NEW GAME</span><span class="arr"></span></button>
+      <button class="mbtn" id="btn-continue"><span class="num">02</span><span class="lbl">CONTINUE</span><span class="arr"></span></button>
+      <button class="mbtn" id="btn-settings"><span class="num">03</span><span class="lbl">SETTINGS</span><span class="arr"></span></button>
+      <button class="mbtn" id="btn-exit"><span class="num">04</span><span class="lbl">EXIT</span><span class="arr"></span></button>
+    </nav>
+  </div>
+  <div class="home-foot">
+    <span>STEP 1 · GARAGE &amp; CAREER</span>
+    <span>v0.4 · REALISM BUILD</span>
+  </div>
+</section>
+
+<!-- ============ HUB ============ -->
+<section id="screen-hub" class="screen hidden">
+  <div class="hub-head">
+    <div class="eyebrow"><i></i>MAIN MENU</div>
+    <h2 class="h2">CHOOSE YOUR <em>PATH</em></h2>
+  </div>
+  <div class="hub-tiles">
+    <button class="tile" id="btn-garage">
+      <svg class="tile-ico" viewBox="0 0 24 24"><path d="M3 13l2-5h14l2 5v5h-3a2.5 2.5 0 0 1-5 0H11a2.5 2.5 0 0 1-5 0H3v-5zm4-3h10M7 13h.01M17 13h.01" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      <div class="tile-t">GARAGE</div>
+      <div class="tile-d">3D CARS · PARTS · CUSTOM LOOK</div>
+      <span class="tile-arr">›</span>
+    </button>
+    <button class="tile" id="btn-career">
+      <svg class="tile-ico" viewBox="0 0 24 24"><path d="M5 21V4m0 0h13l-2.5 4L18 12H5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      <div class="tile-t">CAREER</div>
+      <div class="tile-d">RACES · MAPS · REWARDS</div>
+      <span class="tile-arr">›</span>
+    </button>
+  </div>
+  <div class="hub-links">
+    <button class="linkbtn" id="btn-hub-settings">SETTINGS</button>
+    <button class="linkbtn" id="btn-hub-back">TITLE SCREEN</button>
+  </div>
+</section>
+
+<!-- ============ GARAGE ============ -->
+<section id="screen-garage" class="screen garage hidden">
+  <div class="g-stage" id="g-stage">
+    <canvas id="car-canvas"></canvas>
+    <div id="car-fallback" class="car-fallback hidden"></div>
+
+    <div class="stage-hud">
+      <div class="car-plate">
+        <h3 id="car-name">—</h3>
+        <div id="car-class" class="badge">—</div>
+        <div class="car-rating"><span id="car-rating">0</span><small>PERF RATING</small></div>
+      </div>
+      <div class="stage-hints" id="stage-hints">
+        <span><b>◄ ►</b> SWITCH CAR</span><span><b>DRAG</b> ROTATE</span><span><b>SCROLL</b> ZOOM</span><span><b>ESC</b> BACK</span>
+      </div>
+    </div>
+
+    <button class="view3d-btn" id="btn-view3d"><b>1</b> VIEW &amp; ROTATE 3D</button>
+
+    <button class="stage-nav left" id="btn-car-prev" title="previous car">‹</button>
+    <button class="stage-nav right" id="btn-car-next" title="next car">›</button>
+  </div>
+
+  <aside class="g-right" id="g-right">
+    <div class="panel-tabs">
+      <button class="ptab on" id="tab-specs">SPECS</button>
+      <button class="ptab" id="tab-custom">CUSTOMIZATION</button>
+    </div>
+    <div class="panel-body">
+      <div id="panel-specs">
+        <p id="car-desc" class="desc"></p>
+        <div id="spec-bars"></div>
+        <button class="unlock-nitro hidden" id="btn-unlock-nitro">UNLOCK NITROUS</button>
+      </div>
+      <div id="panel-custom" class="hidden">
+        <h4 class="sub-title">PERFORMANCE PARTS</h4>
+        <div id="upgrade-list" class="up-list"></div>
+        <h4 class="sub-title">CUSTOM LOOK</h4>
+        <div id="cosmetic-list" class="cos-list"></div>
+      </div>
+    </div>
+    <div class="actions">
+      <button class="act primary" id="btn-select">SELECT</button>
+      <button class="act" id="btn-buy">BUY</button>
+    </div>
+  </aside>
+
+  <div id="car-list" class="car-tabs"></div>
+  <button class="linkbtn g-back" id="btn-garage-back">‹ BACK TO HUB</button>
+</section>
+
+<!-- ============ RACE (STEP 2) ============ -->
+<section id="screen-race" class="screen race hidden">
+  <canvas id="race-canvas"></canvas>
+  <div class="race-hud">
+    <div class="rh-left">
+      <div class="rh-pos"><b id="race-pos">1</b><span>/3</span></div>
+      <div class="rh-time" id="race-time">0:00.0</div>
+    </div>
+    <div class="rh-right">
+      <div class="rh-speed"><b id="race-speed">0</b><span> KM/H</span></div>
+      <div class="rh-nitro"><i id="race-nitro"></i></div>
+    </div>
+  </div>
+  <div class="rh-progress"><i id="race-progress"></i></div>
+  <div id="countdown" class="countdown hidden">3</div>
+  <div id="race-banner" class="race-banner hidden"></div>
+</section>
+
+<!-- ============ CAREER ============ -->
+<section id="screen-career" class="screen hidden">
+  <div class="hub-head">
+    <div class="eyebrow"><i></i>CAREER MODE</div>
+    <h2 class="h2">PROVE <em>YOURSELF</em></h2>
+  </div>
+  <div id="race-list"></div>
+  <button class="linkbtn" id="btn-career-back">‹ BACK TO HUB</button>
+</section>
+
+<!-- ============ SETTINGS ============ -->
+<section id="screen-settings" class="screen hidden">
+  <div class="hub-head">
+    <div class="eyebrow"><i></i>SYSTEM</div>
+    <h2 class="h2">SETT<em>INGS</em></h2>
+  </div>
+  <div class="panel settings">
+    <div class="set-row">
+      <span>GRAPHICS QUALITY</span>
+      <div class="seg" id="quality-seg">
+        <button data-q="high">HIGH</button>
+        <button data-q="medium">MED</button>
+        <button data-q="low">LOW</button>
+      </div>
+    </div>
+    <div class="set-row">
+      <span>SOUND</span>
+      <div class="seg" id="sound-seg">
+        <button data-s="on">ON</button>
+        <button data-s="off">OFF</button>
+      </div>
+    </div>
+    <div class="set-row">
+      <span>3D CAR MODELS</span>
+      <span class="set-val" id="glb-status">SAMPLE GEOMETRY</span>
+    </div>
+    <div class="set-row">
+      <span>PROFILE</span>
+      <button class="act danger" id="btn-reset">RESET PROGRESS</button>
+    </div>
+  </div>
+  <button class="linkbtn" id="btn-settings-back">‹ BACK</button>
+</section>
+
+<!-- ============ EXIT ============ -->
+<section id="screen-exit" class="screen hidden">
+  <h2 class="h2">SEE YOU ON THE <em>STREETS</em></h2>
+  <p class="exit-note">You can close this tab now.<br>Your profile is saved automatically.</p>
+</section>
+
+<!-- ============ MODAL / TOAST ============ -->
+<div id="modal" class="hidden">
+  <div class="modal-box">
+    <h3 id="modal-title"></h3>
+    <p id="modal-body"></p>
+    <div id="modal-actions"></div>
+  </div>
+</div>
+<div id="toast" class="hidden"></div>
+
+<script defer src="three.min.js"></script>
+<script defer src="GLTFLoader.js"></script>
+<script defer src="audio.js"></script>
+<script defer src="viewer.js"></script>
+<script defer src="race.js"></script>
+<script defer src="main.js"></script>
+</body>
+</html>

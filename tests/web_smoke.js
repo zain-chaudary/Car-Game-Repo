@@ -53,6 +53,7 @@ const assert = (cond, msg) => {
 
 w.eval(read('audio.js'));
 w.eval(read('viewer.js'));
+w.eval(read('race.js'));
 w.eval(read('main.js'));
 
 const doc = w.document;
@@ -90,8 +91,8 @@ assert(doc.querySelector('.car-card') === null, 'fake procedural cars removed fr
 assert($('#spec-sheet').querySelectorAll('.ss-row').length === 13, 'detailed spec sheet renders 13 rows');
 assert($('#spec-sheet').textContent.includes('5.9L CAST-IRON V8'), 'bruiser engine detail in spec sheet');
 assert($('#spec-sheet').textContent.includes('TORQUE'), 'torque detail in spec sheet');
-assert($('#screen-race') === null, 'race screen removed from the app');
-assert(doc.querySelector('script[src*="race.js"]') === null, 'race.js no longer loaded');
+assert($('#screen-race') !== null, 'race screen present for RACE 1');
+assert(doc.querySelector('script[src^="race.js?v="]') !== null, 'race.js loaded with cache-busting version');
 
 /* owned-only switching */
 key('ArrowRight');
@@ -140,7 +141,22 @@ assert(!$('#screen-hub').classList.contains('hidden'), 'back at hub');
 
 click($('#btn-career'));
 assert(!$('#screen-career').classList.contains('hidden'), 'career shown');
-assert($('#screen-career').textContent.includes('AWAITING YOUR DESIGN'), 'career is a clean placeholder until you design the race & map system');
+const raceCard = doc.querySelector('.race-card');
+assert(raceCard !== null && raceCard.textContent.includes('RACE 1'), 'RACE 1 card listed');
+assert(raceCard.textContent.includes('YOUR CAR, THEIR COLOURS'), 'rivals are your car in different colours');
+const raceBtn = raceCard.querySelector('button');
+assert(raceBtn.textContent === 'START RACE', 'race card has START RACE');
+click(raceBtn);
+assert(!$('#screen-race').classList.contains('hidden'), 'START RACE launches the race screen');
+assert(w.Race.running === true, 'race loop running');
+assert(w.Race.states && w.Race.states.ais.length === 2, 'two same-car rivals on the grid');
+assert(w.Race.track.len > 1900 && w.Race.track.len < 2150, 'clean strip track ~2 km');
+assert(!$('#countdown').classList.contains('hidden'), 'countdown shown');
+key('Escape');
+assert(!$('#modal').classList.contains('hidden'), 'Esc pauses the race');
+click(doc.querySelectorAll('#modal-actions .act')[1]);   /* EXIT RACE */
+assert(w.Race.running === false, 'race stopped on exit');
+assert(!$('#screen-career').classList.contains('hidden'), 'exit returns to career');
 click($('#btn-career-back'));
 
 click($('#btn-career-back'));

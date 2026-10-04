@@ -240,7 +240,8 @@ let viewMode = false;
 function showScreen(id) {
   document.querySelectorAll('.screen').forEach(s => s.classList.add('hidden'));
   $('#' + id).classList.remove('hidden');
-  $('#topbar').classList.toggle('hidden', id === 'screen-home' || id === 'screen-exit');
+  $('#topbar').classList.toggle('hidden', id === 'screen-home' || id === 'screen-exit' || id === 'screen-race');
+  if (id !== 'screen-race' && typeof Race !== 'undefined' && Race.running) Race.stop(false);
   const bgId2 = BG_OF[id] || 'bg-home';
   const bgEl = document.getElementById(bgId2);
   if (bgEl && BG_URLS[bgId2] && !bgEl.dataset.loaded) {
@@ -588,8 +589,61 @@ function switchCar(dir) {
   renderGarage(true);
 }
 
+/* ------------------------- RACE 1 (user design) ------------------------- */
+const RACES = [
+  { id: 'race1', name: 'RACE 1', map: 'CLEAN STRIP', dist: '2.0 KM', reward: 1500, ai: [0.93, 0.88] },
+];
+
 /* ------------------------- CAREER ------------------------- */
-function renderCareer() { /* race & map system: awaiting the user's design */ }
+function renderCareer() {
+  const list = $('#race-list');
+  list.innerHTML = '';
+  RACES.forEach(r => {
+    const card = document.createElement('div');
+    card.className = 'race-card';
+    card.innerHTML =
+      '<div><div class="rc-name">' + r.name + '</div>' +
+      '<div class="rc-meta">' + r.map + ' · ' + r.dist + ' · 2 RIVALS — YOUR CAR, THEIR COLOURS · ' +
+      '<span class="reward">REWARD ' + fmtCash(r.reward) + '</span></div></div>' +
+      '<button class="act primary" style="flex:0 0 auto;padding:11px 26px">START RACE</button>';
+    card.querySelector('button').onclick = () => startRace(r);
+    list.appendChild(card);
+  });
+}
+
+function startRace(r) {
+  const car = carById(save.selected);
+  const st = effStats(car);
+  if (typeof Race === 'undefined' || !Race) {
+    showModal(r.name, 'Race engine unavailable.', [{ label: 'OK', primary: true }]);
+    return;
+  }
+  const carDef = {
+    id: car.id,
+    top: st.speed / 3.6,
+    accel: 27.78 / Math.max(2.4, st.accel),
+    brake: 6 + st.brakes * 0.06,
+    handling01: st.handling / 150,
+    nitroUnlocked: nitroUnlocked(car),
+  };
+  fx('whoosh');
+  Race.start(r, carDef, {
+    onFinished: res => {
+      const reward = res.place === 1 ? r.reward : 500;
+      save.cash += reward;
+      if (res.place === 1) save.wins = (save.wins || 0) + 1;
+      persist();
+      updateTopbar();
+      const mm = Math.floor(res.time / 60), ss = (res.time % 60).toFixed(1);
+      showModal(
+        res.place === 1 ? 'RACE WON' : 'RACE COMPLETE',
+        '<b>' + r.name + '</b><br>Finish: <b>P' + res.place + '</b> · Time <b>' + mm + ':' + (ss < 10 ? '0' : '') + ss + '</b><br>Payout: <b>' + fmtCash(reward) + '</b>',
+        [{ label: 'COLLECT CASH', primary: true, cb: () => { fx('buy'); toast('+' + fmtCash(reward) + ' BANKED'); } }]
+      );
+    },
+    onQuit: () => {},
+  });
+}
 
 /* ------------------------- SETTINGS ------------------------- */
 function renderSettings() {
@@ -761,6 +815,13 @@ function initFX() {
     document.documentElement.style.setProperty('--py', y.toFixed(3));
   });
   preloadAll();
+}
+
+/* hooks for race.js (browser scripts AND test evals) */
+if (typeof window !== 'undefined') {
+  window.showScreen = showScreen;
+  window.showModal = showModal;
+  window.getSettings = () => settings;
 }
 
 /* ------------------------- BOOT ------------------------- */

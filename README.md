@@ -25,21 +25,23 @@ rotate in full view (`1` or click) for performance · `◄ ►` switches owned c
 specs-only default panel + **CUSTOMIZATION** tab with 12 upgrade categories
 (engine … ELITE engine swap at $350,000/stage) · light, natural theme.
 
-**Drop in your own 3D cars:** put `falcon.glb` / `vortex.glb` in
-`nfs3d/assets/models/` — they replace the sample geometry automatically
-(auto-scaled, auto-centered, paint/rim aware). See
-[`nfs3d/assets/models/README.md`](nfs3d/assets/models/README.md).
+**Your 3D cars:** `bruiser.glb` / `hyperion.glb` in `nfs3d/assets/models/`
+are the only two cars — auto-scaled, auto-centered, factory-finish aware.
+See [`nfs3d/assets/models/README.md`](nfs3d/assets/models/README.md).
 
-**Step 2 — playable race (done):** *Sunset Strip Sprint* on **Downtown Coast** —
-2.4 km coastal sprint vs two AI cars (rubber-banded), 3-2-1-GO countdown,
-chase camera, HUD (speed / position / time / nitro / progress), rail-stable
-arcade physics (WASD/arrows, Shift = nitro when unlocked, Esc = pause).
-P1 pays $1,500, finishing pays $500. World is instanced (one draw call per
-group): ocean, promenade, buildings, palms, light poles, rails, gantries.
+**v0.6 — clean garage rebuild (current):** minimal full-bleed 3D garage with a
+floating name plate, owned-car chips and a floating panel: SPECS tab shows a
+detailed 11-row sheet (engine, power, torque, drivetrain, weight, top speed,
+0–100, handling, brakes, nitro, downforce) plus visual bars; CUSTOMIZE tab has
+the 12-category upgrade catalog and cosmetic looks. Rendering is light:
+on-demand frames, 1.5× pixel-ratio cap, 1024px soft shadows, ACES tone mapping
+and a generated studio environment for real paint reflections.
 
-Controls: **WASD / arrows** drive · **Shift** nitro · **Esc** pause.
+**Race & map system:** removed by request — the career screen is a clean
+placeholder until the exact race/map design is specified.
 
-**Next steps:** more races/maps, story mode, drift/handling model.
+Garage controls: **◄ ► / arrows or chips** switch car · **1 / click** view &
+rotate · **Esc** back.
 
 ```
 nfs3d/index.html        UI screens (home, hub, garage, career, settings, exit)
@@ -104,7 +106,8 @@ requirements.txt
 - [x] PAYBACK RUSH Step 1: home/hub/garage/career + economy
 - [x] Step 1.5: 3D garage viewer (rotate, customization, sound, GLB drop-in)
 - [x] v0.4: user GLB starters (BRUISER V8 / HYPERION GT), nitrous lock, realistic light theme
-- [x] Step 2: playable race on Downtown Coast (AI opponents, nitro, payouts)
+- [x] v0.6: minimal garage rebuild (detailed spec sheets, 2 GLB cars only)
+- [ ] Race & map system — awaiting user design
 - [ ] More cars & maps
 - [ ] Track racing mode (circuit with lap timer)
 - [ ] Sound effects & music
